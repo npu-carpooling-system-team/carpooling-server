@@ -1,2 +1,2 @@
-# resource-server
-资源共享管理系统后端
+# carpooling-server
+拼车系统后端
