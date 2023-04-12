@@ -14,6 +14,7 @@
     <!--  所有包的聚合 供maven自动识别依赖关系 -->
     <modules>
 
+        <module>../carpooling-base</module>
     </modules>
 
     <profiles>
@@ -43,11 +44,12 @@
         <druid.version>1.2.15</druid.version>
         <mysql-connector-j.version>8.0.32</mysql-connector-j.version>
         <mybatis-plus-boot-starter.version>3.5.3.1</mybatis-plus-boot-starter.version>
-        <hutool.version>5.8.14</hutool.version>
+        <hutool.version>5.8.16</hutool.version>
         <minio.version>8.5.2</minio.version>
         <xxl-job-core.version>2.3.1</xxl-job-core.version>
         <elasticsearch.version>7.12.1</elasticsearch.version>
-        <poi.version>4.1.1</poi.version>
+        <poi.version>5.2.3</poi.version>
+        <aliyun-sms.version>2.0.22</aliyun-sms.version>
     </properties>
 
     <dependencyManagement>
@@ -142,14 +144,31 @@
                 <artifactId>spring-boot-starter-test</artifactId>
                 <version>${spring-boot.version}</version>
                 <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.junit.vintage</groupId>
-                        <artifactId>junit-vintage-engine</artifactId>
-                    </exclusion>
-                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.aliyun</groupId>
+                <artifactId>alibabacloud-dysmsapi20170525</artifactId>
+                <version>${aliyun-sms.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
 
+    <build>
+        <plugins>
+            <!--打包插件-->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
