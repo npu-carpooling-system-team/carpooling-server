@@ -11,10 +11,11 @@
     <description>carpooling-parent</description>
     <packaging>pom</packaging>
 
-    <!--  所有包的聚合 供maven自动识别依赖关系 -->
+    <!--  所有包的聚合 供maven自动识别依赖关系 IDEA会自动添加 -->
     <modules>
-
         <module>../carpooling-base</module>
+        <module>../carpooling-gateway</module>
+        <module>../carpooling-auth</module>
     </modules>
 
     <profiles>
@@ -50,6 +51,8 @@
         <elasticsearch.version>7.12.1</elasticsearch.version>
         <poi.version>5.2.3</poi.version>
         <aliyun-sms.version>2.0.22</aliyun-sms.version>
+        <caffeine.version>3.1.6</caffeine.version>
+        <nacos-client.version>2.2.0</nacos-client.version>
     </properties>
 
     <dependencyManagement>
@@ -149,6 +152,17 @@
                 <groupId>com.aliyun</groupId>
                 <artifactId>alibabacloud-dysmsapi20170525</artifactId>
                 <version>${aliyun-sms.version}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine -->
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${caffeine.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.nacos</groupId>
+                <artifactId>nacos-client</artifactId>
+                <version>${nacos-client.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
