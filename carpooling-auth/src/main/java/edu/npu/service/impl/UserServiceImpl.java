@@ -2,8 +2,8 @@ package edu.npu.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import edu.npu.entity.User;
-import edu.npu.service.UserService;
 import edu.npu.mapper.UserMapper;
+import edu.npu.service.UserService;
 import org.springframework.stereotype.Service;
 
 /**

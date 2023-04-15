@@ -35,7 +35,7 @@ public class JacksonConfig {
     public ObjectMapper jacksonObjectMapper() {
         ObjectMapper objectMapper = builder.createXmlMapper(false).build();
 
-        objectMapper.getSerializerProvider().setNullValueSerializer(new JsonSerializer<Object>() {
+        objectMapper.getSerializerProvider().setNullValueSerializer(new JsonSerializer<>() {
             @Override
             public void serialize(Object o, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
                 jsonGenerator.writeString("");

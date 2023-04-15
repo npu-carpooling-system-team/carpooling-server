@@ -1,10 +1,10 @@
 package edu.npu.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import lombok.Data;
 
 /**
  * 用户表,用于记录用户的详细信息

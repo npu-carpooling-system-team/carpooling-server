@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.AntPathMatcher;
@@ -31,6 +32,9 @@ import java.util.Set;
 @Configuration
 @Slf4j
 public class GatewayAuthFilter implements GlobalFilter, Ordered {
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     @Resource
     @Lazy
@@ -59,6 +63,7 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String requestUrl = exchange.getRequest().getPath().value();
         AntPathMatcher pathMatcher = new AntPathMatcher();
+        System.out.println(stringRedisTemplate.opsForValue().get("token:12345"));
         //白名单放行
         for (String url : whitelist) {
             if (pathMatcher.match(url, requestUrl)) {
@@ -66,6 +71,7 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
             }
         }
         // TODO 认证令牌校验
+
         //检查token是否存在
         String token = getToken(exchange);
         if (StrUtil.isBlank(token)) {

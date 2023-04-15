@@ -1,12 +1,6 @@
 package edu.npu.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-
 import edu.npu.common.RoleEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,6 +8,11 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * 用于用户名密码登录所需表格
