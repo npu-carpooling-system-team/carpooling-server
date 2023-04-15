@@ -66,6 +66,11 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
             }
         }
         // TODO 认证令牌校验
+        //检查token是否存在
+        String token = getToken(exchange);
+        if (StrUtil.isBlank(token)) {
+            return buildReturnMono("没有认证",exchange);
+        }
         return buildReturnMono("认证令牌已过期",exchange);
     }
 

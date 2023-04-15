@@ -12,6 +12,8 @@ spring:
           - data-id: ${spring.application.name}-${spring.profiles.active}1.yaml
             group: carpooling-system
             refresh: true
-logging:
-  level:
-    edu.npu: debug
+        shared-configs:
+          - data-id: db-config-${spring.profiles.active}1.yaml
+            group: carpooling-system
+            refresh: true
+

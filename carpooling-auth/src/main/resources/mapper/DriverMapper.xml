@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu.npu.mapper.DriverMapper">
+
+    <resultMap id="BaseResultMap" type="edu.npu.entity.Driver">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="driverId" column="driver_id" jdbcType="BIGINT"/>
+            <result property="personalId" column="personal_id" jdbcType="VARCHAR"/>
+            <result property="driverName" column="driver_name" jdbcType="VARCHAR"/>
+            <result property="driversLicenseNo" column="drivers_license_no" jdbcType="VARCHAR"/>
+            <result property="driversLicenseType" column="drivers_license_type" jdbcType="VARCHAR"/>
+            <result property="driversPlateNo" column="drivers_plate_no" jdbcType="VARCHAR"/>
+            <result property="driversVehicleType" column="drivers_vehicle_type" jdbcType="VARCHAR"/>
+            <result property="driverExpireDate" column="driver_expire_date" jdbcType="TIMESTAMP"/>
+            <result property="avgScore" column="avg_score" jdbcType="INTEGER"/>
+            <result property="isDeleted" column="is_deleted" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,driver_id,personal_id,
+        driver_name,drivers_license_no,drivers_license_type,
+        drivers_plate_no,drivers_vehicle_type,driver_expire_date,
+        avg_score,is_deleted
+    </sql>
+</mapper>
