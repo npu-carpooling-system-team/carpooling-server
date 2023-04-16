@@ -14,7 +14,10 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @Configuration
 public class SecurityConfig {
 
-    //安全拦截配置
+    /**
+     * 安全拦截配置
+     * 交换机放行一切接口，具体鉴权由 {@link GatewayAuthFilter} 过滤器实现
+     */
     @Bean
     public SecurityWebFilterChain webFluxSecurityFilterChain(ServerHttpSecurity http) {
         return http.authorizeExchange()
