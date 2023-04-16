@@ -23,7 +23,10 @@ public enum ResponseCodeEnum {
 
     // ==================== 403 Forbidden ====================
     Forbidden(4030),
+
     NotEnoughInformation(4031),
+
+    PreCheckFailed(4032),
 
     // ==================== 404 NotFound ====================
     NotFound(4040),

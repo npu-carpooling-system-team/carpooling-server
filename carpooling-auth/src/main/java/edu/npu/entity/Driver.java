@@ -1,11 +1,14 @@
 package edu.npu.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
-import lombok.Data;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 /**
  * 司机表
@@ -28,12 +31,12 @@ public class Driver implements Serializable {
     /**
      * 司机身份证号
      */
-    private String personalId;
+    private String driversPersonalId;
 
     /**
      * 司机姓名
      */
-    private String driverName;
+    private String driversName;
 
     /**
      * 司机驾驶证号
@@ -58,7 +61,7 @@ public class Driver implements Serializable {
     /**
      * 证件过期的最早时间
      */
-    private Date driverExpireDate;
+    private Date driversExpireDate;
 
     /**
      * 司机评分
@@ -68,10 +71,9 @@ public class Driver implements Serializable {
     /**
      * 逻辑删除字段,0未删除,1已删除
      */
-    @TableLogic(value = "0", delval = "1")
     private Integer isDeleted;
 
     @Serial
     @TableField(exist = false)
-    private static final long serialVersionUID = 1632461L;
+    private static final long serialVersionUID = 184513L;
 }

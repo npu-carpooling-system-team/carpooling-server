@@ -1,7 +1,9 @@
 package edu.npu.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import edu.npu.dto.UserRegisterDto;
 import edu.npu.entity.LoginAccount;
+import edu.npu.vo.R;
 
 /**
 * @author wangminan
@@ -10,4 +12,5 @@ import edu.npu.entity.LoginAccount;
 */
 public interface LoginAccountService extends IService<LoginAccount> {
 
+    R registerUser(UserRegisterDto userRegisterDto);
 }
