@@ -42,12 +42,12 @@ public class User implements Serializable {
     /**
      * 是否是司机
      */
-    private Integer isDriver;
+    private Boolean isDriver;
 
     /**
      * 是否是乘客
      */
-    private Integer isPassenger;
+    private Boolean isPassenger;
 
     /**
      * 逻辑删除字段,是否被删除,0未删除,1已删除

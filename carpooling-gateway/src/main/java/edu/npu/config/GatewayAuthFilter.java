@@ -1,9 +1,11 @@
 package edu.npu.config;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.npu.entity.LoginAccount;
+import edu.npu.service.LoginAccountService;
 import edu.npu.util.JwtTokenProvider;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +50,9 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
     private JwtTokenProvider jwtTokenProvider;
 
     @Resource
+    private LoginAccountService loginAccountService;
+
+    @Resource
     @Lazy
     private ObjectMapper objectMapper;
 
@@ -88,26 +93,17 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
         String username = jwtTokenProvider.extractUsername(token);
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             // 从Redis中获取user信息
-            String loginAccountStr = stringRedisTemplate.opsForValue().get(TOKEN_KEY_PREFIX + username);
-            if (loginAccountStr == null) {
+            String cachedToken = stringRedisTemplate.opsForValue().get(TOKEN_KEY_PREFIX + username);
+            if (cachedToken == null || !cachedToken.equals(token)) {
                 return buildReturnMono("认证令牌无效",exchange);
             }
-            LoginAccount loginAccount =
-                    objectMapper.convertValue(
-                            loginAccountStr, LoginAccount.class);
+            // 查数据库获取用户
+            LoginAccount loginAccount = loginAccountService.getOne(
+                    new QueryWrapper<LoginAccount>().lambda()
+                            .eq(LoginAccount::getUsername, username)
+            );
             // 校验令牌合法性 是否过期
             if (jwtTokenProvider.isTokenValid(token, loginAccount)) {
-                // 重新在redis中设置过期时间以使令牌延期
-                stringRedisTemplate.opsForValue().set(
-                        TOKEN_KEY_PREFIX + username, loginAccountStr,
-                        TOKEN_EXPIRE_TTL, TimeUnit.MILLISECONDS);
-                // 将用户信息放入 SecurityContextHolder
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                loginAccount,
-                                null,
-                                loginAccount.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authToken);
                 return chain.filter(exchange);
             }
         }

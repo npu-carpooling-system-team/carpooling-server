@@ -15,7 +15,7 @@ public enum RoleEnum {
 
 
     @JsonProperty("Admin")
-    Admin(2);
+    Admin(1);
 
     RoleEnum(int value) {
         this.value = value;

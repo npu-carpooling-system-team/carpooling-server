@@ -13,6 +13,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 用于用户名密码登录所需表格
@@ -42,7 +43,7 @@ public class LoginAccount implements Serializable, UserDetails {
     /**
      * 用户角色:司机/乘客,管理员
      */
-    private RoleEnum role;
+    private int role;
 
     /**
      * 逻辑删除字段,0未删除,1已删除
@@ -56,7 +57,8 @@ public class LoginAccount implements Serializable, UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return List.of(new SimpleGrantedAuthority(
+                Objects.requireNonNull(RoleEnum.fromValue(role)).name()));
     }
 
     @Override

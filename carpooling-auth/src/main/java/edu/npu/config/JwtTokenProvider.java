@@ -1,4 +1,4 @@
-package edu.npu.util;
+package edu.npu.config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
