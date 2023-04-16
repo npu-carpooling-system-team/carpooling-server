@@ -16,6 +16,7 @@
         <module>../carpooling-base</module>
         <module>../carpooling-gateway</module>
         <module>../carpooling-auth</module>
+        <module>../carpooling-user</module>
     </modules>
 
     <profiles>
