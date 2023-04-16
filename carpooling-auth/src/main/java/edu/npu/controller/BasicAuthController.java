@@ -1,5 +1,6 @@
 package edu.npu.controller;
 
+import edu.npu.dto.CheckSmsCodeDto;
 import edu.npu.dto.UserLoginDto;
 import edu.npu.dto.UserRegisterDto;
 import edu.npu.entity.LoginAccount;
@@ -8,7 +9,6 @@ import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -55,5 +55,8 @@ public class BasicAuthController {
         return loginAccountService.logout(loginAccount);
     }
 
-
+    @PostMapping("/login/phone")
+    public R loginByPhone(@RequestBody @Validated CheckSmsCodeDto checkSmsCodeDto){
+        return loginAccountService.loginByPhone(checkSmsCodeDto);
+    }
 }

@@ -8,7 +8,6 @@ import edu.npu.dto.CheckSmsCodeDto;
 import edu.npu.dto.SendMailDto;
 import edu.npu.dto.SendSmsDto;
 import edu.npu.service.SmsAndMailService;
-import edu.npu.util.RegexUtils;
 import edu.npu.util.SendMailUtil;
 import edu.npu.util.SendSmsUtil;
 import edu.npu.vo.R;

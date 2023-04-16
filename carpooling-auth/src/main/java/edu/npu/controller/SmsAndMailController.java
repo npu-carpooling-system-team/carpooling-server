@@ -7,7 +7,6 @@ import edu.npu.dto.SendSmsDto;
 import edu.npu.service.SmsAndMailService;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
-import org.springframework.security.core.parameters.P;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

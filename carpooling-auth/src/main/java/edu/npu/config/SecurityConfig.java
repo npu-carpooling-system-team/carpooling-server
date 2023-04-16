@@ -1,5 +1,6 @@
 package edu.npu.config;
 
+import edu.npu.filter.JwtAuthenticationFilter;
 import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

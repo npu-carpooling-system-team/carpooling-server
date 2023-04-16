@@ -11,13 +11,13 @@ public enum CarpoolingError {
     QUERY_NULL("查询结果为空"),
     REQUEST_NULL("请求参数为空");
 
-    private final String errMessage;
+    private final String msg;
 
     public String getErrMessage() {
-        return errMessage;
+        return msg;
     }
 
-    CarpoolingError(String errMessage) {
-        this.errMessage = errMessage;
+    CarpoolingError(String msg) {
+        this.msg = msg;
     }
 }

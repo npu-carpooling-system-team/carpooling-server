@@ -15,7 +15,7 @@ public class CarpoolingException extends RuntimeException{
     @Serial
     private static final long serialVersionUID = 165421815L;
 
-    private String errMessage;
+    private String msg;
 
     public CarpoolingException() {
         super();
@@ -23,7 +23,7 @@ public class CarpoolingException extends RuntimeException{
 
     public CarpoolingException(String message) {
         super(message);
-        this.errMessage = message;
+        this.msg = message;
     }
 
     public static void cast(CarpoolingError commonError){

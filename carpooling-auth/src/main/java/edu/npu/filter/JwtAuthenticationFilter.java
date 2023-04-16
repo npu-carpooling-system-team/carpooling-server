@@ -1,5 +1,6 @@
-package edu.npu.config;
+package edu.npu.filter;
 
+import edu.npu.util.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

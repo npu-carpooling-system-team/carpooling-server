@@ -7,17 +7,17 @@ import java.io.Serializable;
  */
 public class RestErrorResponse implements Serializable {
 
-    private String errMessage;
+    private String msg;
 
-    public RestErrorResponse(String errMessage){
-        this.errMessage= errMessage;
+    public RestErrorResponse(String msg){
+        this.msg = msg;
     }
 
     public String getErrMessage() {
-        return errMessage;
+        return msg;
     }
 
     public void setErrMessage(String errMessage) {
-        this.errMessage = errMessage;
+        this.msg = errMessage;
     }
 }
