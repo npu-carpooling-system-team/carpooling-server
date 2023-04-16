@@ -3,10 +3,6 @@ package edu.npu.dto;
 import edu.npu.util.RegexPatterns;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.security.core.parameters.P;
 
 /**
  * @author : [wangminan]
