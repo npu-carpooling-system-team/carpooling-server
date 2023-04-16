@@ -16,4 +16,13 @@ spring:
           - data-id: db-config-${spring.profiles.active}1.yaml
             group: carpooling-system
             refresh: true
+          - data-id: redis-config-${spring.profiles.active}1.yaml
+            group: carpooling-system
+            refresh: true
+          - data-id: aliyunsms-config-${spring.profiles.active}1.yaml
+            group: carpooling-system
+            refresh: true
+          - data-id: mail-config-${spring.profiles.active}1.yaml
+            group: carpooling-system
+            refresh: true
 

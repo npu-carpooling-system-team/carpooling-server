@@ -16,7 +16,7 @@ public class R extends HashMap<String, Object> {
     private static final long serialVersionUID = 16545151L;
 
     public R() {
-        put("code", ResponseCodeEnum.Success);
+        put("code", ResponseCodeEnum.Success.getValue());
     }
 
     public static R error() {
