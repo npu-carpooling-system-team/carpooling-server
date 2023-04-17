@@ -24,6 +24,7 @@ import edu.npu.util.JwtTokenProvider;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -131,51 +132,41 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public R updateInfo(PutUserInfoDto putUserInfoDto) {
         User user = this.getOne(
                 new LambdaQueryWrapper<User>()
-                        .eq(User::getAlipayId, putUserInfoDto.alipayId()));
+                        .eq(User::getUsername, putUserInfoDto.username()));
         if (user == null) {
             log.error("所需更新的用户不存在");
             return R.error(ResponseCodeEnum.NotFound, "所需更新的用户不存在");
         }
         BeanUtils.copyProperties(putUserInfoDto, user);
-        //补全User中缺失的字段
-//        newUser.setId(oldUser.getId());
-//        newUser.setIsDeleted(oldUser.getIsDeleted());
-        this.updateById(user);
-        User newUser = this.getOne(
-                new LambdaQueryWrapper<User>()
-                        .eq(User::getAlipayId, putUserInfoDto.alipayId()));
+
+        boolean userUpdate = this.updateById(user);
 
         if (putUserInfoDto.isDriver()) {
             Driver driver = driverMapper.selectOne(
                     new QueryWrapper<Driver>()
                             .lambda()
                             .eq(Driver::getDriverId, user.getId()));
+            int driverUpdate;
             if (driver == null) {
                 driver = new Driver();
                 BeanUtils.copyProperties(putUserInfoDto, driver);
-                driverMapper.insert(driver);
+                driverUpdate = driverMapper.insert(driver);
             } else {
                 BeanUtils.copyProperties(putUserInfoDto, driver);
-                driverMapper.updateById(driver);
+                driverUpdate = driverMapper.updateById(driver);
             }
-            Driver newDriver = driverMapper.selectOne(
-                    new QueryWrapper<Driver>()
-                            .lambda()
-                            .eq(Driver::getDriverId, driver.getDriverId()));
-            if (newUser.equals(user)&&newDriver.equals(driver))
+            if (userUpdate && driverUpdate == 1)
                 return R.ok("用户信息更新成功");
             else
                 return R.error(ResponseCodeEnum.ServerError, "数据库更新用户信息失败");
         } else {
-            if (newUser.equals(user))
+            if (userUpdate)
                 return R.ok("用户信息更新成功");
             else
                 return R.error(ResponseCodeEnum.ServerError, "数据库更新用户信息失败");
         }
 
     }
-
-
 
 
     @Override
