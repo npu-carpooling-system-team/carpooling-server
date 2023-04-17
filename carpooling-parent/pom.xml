@@ -17,6 +17,7 @@
         <module>../carpooling-gateway</module>
         <module>../carpooling-auth</module>
         <module>../carpooling-user</module>
+        <module>../carpooling-security-sdk</module>
     </modules>
 
     <profiles>
