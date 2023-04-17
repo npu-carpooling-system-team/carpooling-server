@@ -1,7 +1,6 @@
 package edu.npu.feignClient.fallback;
 
 import edu.npu.entity.Driver;
-import edu.npu.entity.LoginAccount;
 import edu.npu.feignClient.DriverServiceClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;
