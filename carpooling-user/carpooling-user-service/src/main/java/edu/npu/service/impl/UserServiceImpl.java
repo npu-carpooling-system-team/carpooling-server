@@ -24,6 +24,7 @@ import edu.npu.util.JwtTokenProvider;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -31,14 +32,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
-* @author wangminan
-* @description 针对表【user(用户表,用于记录用户的详细信息)】的数据库操作Service实现
-* @createDate 2023-04-17 11:23:58
-*/
+ * @author wangminan
+ * @description 针对表【user(用户表,用于记录用户的详细信息)】的数据库操作Service实现
+ * @createDate 2023-04-17 11:23:58
+ */
 @Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
-    implements UserService{
+        implements UserService {
 
     @Resource
     private LoginAccountMapper loginAccountMapper;
@@ -53,6 +54,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Resource
     private DriverMapper driverMapper;
 
+
     @Override
     public String bindAlipayToUser(BindAlipayCallbackDto bindAlipayCallbackDto) {
         String token = bindAlipayCallbackDto.state();
@@ -66,16 +68,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         } catch (AlipayApiException e) {
             throw new RuntimeException(e);
         }
-        if(tokenResponse.isSuccess()){
+        if (tokenResponse.isSuccess()) {
             String accessToken = tokenResponse.getAccessToken();
             AlipayUserInfoShareRequest alipayIdRequest = new AlipayUserInfoShareRequest();
             AlipayUserInfoShareResponse alipayIdResponse;
             try {
-                alipayIdResponse = alipayClient.execute(alipayIdRequest,accessToken);
+                alipayIdResponse = alipayClient.execute(alipayIdRequest, accessToken);
             } catch (AlipayApiException e) {
                 throw new RuntimeException(e);
             }
-            if(alipayIdResponse.isSuccess()){
+            if (alipayIdResponse.isSuccess()) {
                 // 支付宝的工作完成了 现在需要把支付宝ID和User表的User绑定
                 // 因为接口是从支付宝回调来的 所以没有登录状态 需要从state读到的token字段中获取信息
                 String username = jwtTokenProvider.extractUsername(token);
@@ -108,12 +110,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 new QueryWrapper<User>()
                         .lambda()
                         .eq(User::getUsername, loginAccount.getUsername()));
-        if (user == null){
+        if (user == null) {
             log.error("用户不存在");
             return R.error(ResponseCodeEnum.NotFound, "用户不存在");
         }
         Driver driver = new Driver();
-        if (user.getIsDriver()){
+        if (user.getIsDriver()) {
             driver = driverMapper.selectOne(
                     new QueryWrapper<Driver>()
                             .lambda()
@@ -127,7 +129,59 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public R updateInfo(PutUserInfoDto putUserInfoDto) {
-        return null;
+        User oldUser = this.getOne(
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getAlipayId, putUserInfoDto.alipayId()));
+        if (oldUser == null) {
+            log.error("所需更新的用户不存在");
+            return R.error(ResponseCodeEnum.NotFound, "所需更新的用户不存在");
+        }
+        User newUser = new User();
+        BeanUtils.copyProperties(putUserInfoDto, newUser);
+        //补全User中缺失的字段
+        newUser.setId(oldUser.getId());
+        newUser.setIsDeleted(oldUser.getIsDeleted());
+
+        this.updateById(newUser);
+        oldUser = this.getOne(
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getAlipayId, putUserInfoDto.alipayId()));
+
+        if (oldUser.equals(newUser))
+            return R.ok("用户信息更新成功");
+        else
+            return R.error(ResponseCodeEnum.ServerError, "数据库更新用户信息失败");
+    }
+
+    @Override
+    public R deleteAccount(LoginAccount loginAccount) {
+        User user = this.getOne(
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getUsername, loginAccount.getUsername()));
+        if (user == null) {
+            log.error("所需删除的用户不存在");
+            return R.error(ResponseCodeEnum.NotFound, "所需删除的用户不存在");
+        }
+
+        this.removeById(user);
+
+        loginAccountMapper.deleteById(loginAccount);
+
+        if(user.getIsDriver()){
+            Driver driver = driverMapper.selectOne(
+                    new LambdaQueryWrapper<Driver>()
+                            .eq(Driver::getDriverId, user.getId()));
+            driverMapper.deleteById(driver);
+        }
+
+        user = this.getOne(
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getUsername, loginAccount.getUsername()));
+        if (user == null) {
+            return R.ok("账号删除成功");
+        } else{
+            return R.error(ResponseCodeEnum.ServerError, "数据库删除失败");
+        }
     }
 }
 

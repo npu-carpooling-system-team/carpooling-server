@@ -8,10 +8,7 @@ import jakarta.annotation.Resource;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author : [wangminan]
@@ -34,4 +31,11 @@ public class UserController {
     public R updateUserInfo(@RequestBody @Validated PutUserInfoDto putUserInfoDto){
         return userService.updateInfo(putUserInfoDto);
     }
+
+    @PreAuthorize("hasAuthority('User')")
+    @DeleteMapping("/info")
+    public R deleteUserAccount(@AuthenticationPrincipal LoginAccount loginAccount){
+        return userService.deleteAccount(loginAccount);
+    }
+
 }

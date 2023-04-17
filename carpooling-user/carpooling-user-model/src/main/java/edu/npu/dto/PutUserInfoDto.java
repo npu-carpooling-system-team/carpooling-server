@@ -10,24 +10,24 @@ import jakarta.validation.constraints.Pattern;
  */
 public record PutUserInfoDto(
 
-    String alipayId,
-    String avgScore,
-    String driverExpireDate,
-    String driverName,
-    String driverPersonalId,
-    String driversLicenseNo,
-    String driversLicenseType,
-    String driversPlateNo,
-    String driversVehicleType,
-    @Pattern(regexp = RegexPatterns.EMAIL_REGEX, message = "邮箱格式不正确")
-    String email,
-    @NotNull
-    Boolean isDriver,
-    @NotNull
-    Boolean isPassenger,
-    String userImage,
-    @NotNull
-    @Pattern(regexp = RegexPatterns.PHONE_REGEX, message = "手机号格式不正确")
-    String username
+        String alipayId,
+        String avgScore,
+        String driverExpireDate,
+        String driverName,
+        String driverPersonalId,
+        String driversLicenseNo,
+        String driversLicenseType,
+        String driversPlateNo,
+        String driversVehicleType,
+        @Pattern(regexp = "^$|" + RegexPatterns.EMAIL_REGEX, message = "邮箱格式不正确")
+        String email,
+        @NotNull
+        Boolean isDriver,
+        @NotNull
+        Boolean isPassenger,
+        String userImage,
+        @NotNull
+        @Pattern(regexp = RegexPatterns.PHONE_REGEX, message = "手机号格式不正确")
+        String username
 ) {
 }

@@ -17,6 +17,7 @@ public interface UserService extends IService<User> {
 
     R getInfo(LoginAccount loginAccount);
 
-
     R updateInfo(PutUserInfoDto putUserInfoDto);
+
+    R deleteAccount(LoginAccount loginAccount);
 }
