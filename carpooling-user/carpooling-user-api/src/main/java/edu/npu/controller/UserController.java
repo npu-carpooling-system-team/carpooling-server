@@ -1,6 +1,7 @@
 package edu.npu.controller;
 
 import edu.npu.dto.PutUserInfoDto;
+import edu.npu.entity.Driver;
 import edu.npu.entity.LoginAccount;
 import edu.npu.service.UserService;
 import edu.npu.vo.R;
@@ -36,6 +37,11 @@ public class UserController {
     @DeleteMapping("/info")
     public R deleteUserAccount(@AuthenticationPrincipal LoginAccount loginAccount){
         return userService.deleteAccount(loginAccount);
+    }
+
+    @PostMapping("/getDriver")
+    public Driver getDriverWithLoginAccount(@RequestBody LoginAccount loginAccount){
+        return userService.getDriverWithLoginAccount(loginAccount);
     }
 
 }

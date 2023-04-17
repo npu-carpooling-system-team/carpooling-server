@@ -1,5 +1,5 @@
 spring:
   application:
-    name: user-service
+    name: carpooling-api
   profiles:
     active: dev

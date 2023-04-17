@@ -208,6 +208,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return R.error(ResponseCodeEnum.ServerError, "数据库删除失败");
         }
     }
+
+    @Override
+    public Driver getDriverWithLoginAccount(LoginAccount loginAccount) {
+        User user = this.getOne(
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getUsername, loginAccount.getUsername()));
+        if (user == null) {
+            log.error("用户不存在");
+            return null;
+        }
+        if (!user.getIsDriver()) {
+            log.error("用户不是司机");
+            return null;
+        }
+        Driver driver = driverMapper.selectOne(
+                new LambdaQueryWrapper<Driver>()
+                        .eq(Driver::getDriverId, user.getId()));
+        if (driver == null) {
+            log.error("司机不存在");
+            return null;
+        }
+        return driver;
+    }
 }
 
 
