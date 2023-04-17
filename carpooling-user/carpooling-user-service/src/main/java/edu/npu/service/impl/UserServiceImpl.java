@@ -129,29 +129,54 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public R updateInfo(PutUserInfoDto putUserInfoDto) {
-        User oldUser = this.getOne(
+        User user = this.getOne(
                 new LambdaQueryWrapper<User>()
                         .eq(User::getAlipayId, putUserInfoDto.alipayId()));
-        if (oldUser == null) {
+        if (user == null) {
             log.error("所需更新的用户不存在");
             return R.error(ResponseCodeEnum.NotFound, "所需更新的用户不存在");
         }
-        User newUser = new User();
-        BeanUtils.copyProperties(putUserInfoDto, newUser);
+        BeanUtils.copyProperties(putUserInfoDto, user);
         //补全User中缺失的字段
-        newUser.setId(oldUser.getId());
-        newUser.setIsDeleted(oldUser.getIsDeleted());
-
-        this.updateById(newUser);
-        oldUser = this.getOne(
+//        newUser.setId(oldUser.getId());
+//        newUser.setIsDeleted(oldUser.getIsDeleted());
+        this.updateById(user);
+        User newUser = this.getOne(
                 new LambdaQueryWrapper<User>()
                         .eq(User::getAlipayId, putUserInfoDto.alipayId()));
 
-        if (oldUser.equals(newUser))
-            return R.ok("用户信息更新成功");
-        else
-            return R.error(ResponseCodeEnum.ServerError, "数据库更新用户信息失败");
+        if (putUserInfoDto.isDriver()) {
+            Driver driver = driverMapper.selectOne(
+                    new QueryWrapper<Driver>()
+                            .lambda()
+                            .eq(Driver::getDriverId, user.getId()));
+            if (driver == null) {
+                driver = new Driver();
+                BeanUtils.copyProperties(putUserInfoDto, driver);
+                driverMapper.insert(driver);
+            } else {
+                BeanUtils.copyProperties(putUserInfoDto, driver);
+                driverMapper.updateById(driver);
+            }
+            Driver newDriver = driverMapper.selectOne(
+                    new QueryWrapper<Driver>()
+                            .lambda()
+                            .eq(Driver::getDriverId, driver.getDriverId()));
+            if (newUser.equals(user)&&newDriver.equals(driver))
+                return R.ok("用户信息更新成功");
+            else
+                return R.error(ResponseCodeEnum.ServerError, "数据库更新用户信息失败");
+        } else {
+            if (newUser.equals(user))
+                return R.ok("用户信息更新成功");
+            else
+                return R.error(ResponseCodeEnum.ServerError, "数据库更新用户信息失败");
+        }
+
     }
+
+
+
 
     @Override
     public R deleteAccount(LoginAccount loginAccount) {
@@ -167,7 +192,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         loginAccountMapper.deleteById(loginAccount);
 
-        if(user.getIsDriver()){
+        if (user.getIsDriver()) {
             Driver driver = driverMapper.selectOne(
                     new LambdaQueryWrapper<Driver>()
                             .eq(Driver::getDriverId, user.getId()));
@@ -179,7 +204,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                         .eq(User::getUsername, loginAccount.getUsername()));
         if (user == null) {
             return R.ok("账号删除成功");
-        } else{
+        } else {
             return R.error(ResponseCodeEnum.ServerError, "数据库删除失败");
         }
     }
