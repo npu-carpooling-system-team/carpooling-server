@@ -2,6 +2,7 @@ package edu.npu.mapper;
 
 import edu.npu.entity.LoginAccount;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
 * @author wangminan
@@ -9,6 +10,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @createDate 2023-04-17 10:57:34
 * @Entity edu.npu.entity.LoginAccount
 */
+@Mapper
 public interface LoginAccountMapper extends BaseMapper<LoginAccount> {
 
 }

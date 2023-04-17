@@ -1,6 +1,7 @@
 package edu.npu.filter;
 
 import edu.npu.util.JwtTokenProvider;
+import jakarta.annotation.Resource;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,12 +24,13 @@ import java.io.IOException;
  * @description : [一句话描述该类的功能]
  */
 @Component
-@RequiredArgsConstructor // 作用于类，用于生成包含 final 和 @NonNull 注解的成员变量的构造方法 自动执行构造器注入
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    @Resource
+    private JwtTokenProvider jwtTokenProvider;
 
-    private final UserDetailsService userDetailsService;
+    @Resource
+    private UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(
