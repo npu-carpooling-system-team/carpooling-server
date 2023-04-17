@@ -1,6 +1,7 @@
 package edu.npu.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -57,6 +58,7 @@ public class Driver implements Serializable {
     /**
      * 证件过期的最早时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date driversExpireDate;
 
     /**
