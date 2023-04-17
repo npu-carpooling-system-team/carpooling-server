@@ -10,12 +10,12 @@
         <relativePath>../carpooling-parent/pom.xml</relativePath>
     </parent>
 
-    <artifactId>carpooling-user</artifactId>
+    <artifactId>carpooling-carpooling</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>carpooling-user-model</module>
-        <module>carpooling-user-service</module>
-        <module>carpooling-user-api</module>
+        <module>carpooling-carpooling-api</module>
+        <module>carpooling-carpooling-model</module>
+        <module>carpooling-carpooling-service</module>
     </modules>
 
     <properties>
@@ -23,5 +23,4 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
 </project>

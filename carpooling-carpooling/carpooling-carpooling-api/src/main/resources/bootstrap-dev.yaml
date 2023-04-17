@@ -13,18 +13,16 @@ spring:
             group: carpooling-system
             refresh: true
         shared-configs:
+          - data-id: security-sdk-${spring.profiles.active}1.yaml
+            group: carpooling-system
+            refresh: true
           - data-id: db-config-${spring.profiles.active}1.yaml
             group: carpooling-system
             refresh: true
-          - data-id: redis-config-${spring.profiles.active}1.yaml
+          - data-id: alipay-config-${spring.profiles.active}1.yaml
             group: carpooling-system
             refresh: true
-          - data-id: aliyunsms-config-${spring.profiles.active}1.yaml
+          - data-id: es-config-${spring.profiles.active}1.yaml
             group: carpooling-system
             refresh: true
-          - data-id: mail-config-${spring.profiles.active}1.yaml
-            group: carpooling-system
-            refresh: true
-          - data-id: alipay-config-${spring.profiles.active}1.properties
-            group: carpooling-system
-            refresh: true
+

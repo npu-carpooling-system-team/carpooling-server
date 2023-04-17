@@ -3,6 +3,7 @@ package edu.npu.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import edu.npu.dto.BindAlipayCallbackDto;
 import edu.npu.dto.PutUserInfoDto;
+import edu.npu.entity.Driver;
 import edu.npu.entity.LoginAccount;
 import edu.npu.entity.User;
 import edu.npu.vo.R;
@@ -20,4 +21,6 @@ public interface UserService extends IService<User> {
     R updateInfo(PutUserInfoDto putUserInfoDto);
 
     R deleteAccount(LoginAccount loginAccount);
+
+    Driver getDriverWithLoginAccount(LoginAccount loginAccount);
 }

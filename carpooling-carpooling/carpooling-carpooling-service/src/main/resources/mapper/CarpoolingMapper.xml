@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu.npu.mapper.CarpoolingMapper">
+
+    <resultMap id="BaseResultMap" type="edu.npu.entity.Carpooling">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="driverId" column="driver_id" jdbcType="BIGINT"/>
+            <result property="departureTime" column="departure_time" jdbcType="TIMESTAMP"/>
+            <result property="arriveTime" column="arrive_time" jdbcType="TIMESTAMP"/>
+            <result property="departurePoint" column="departure_point" jdbcType="VARCHAR"/>
+            <result property="arrivePoint" column="arrive_point" jdbcType="VARCHAR"/>
+            <result property="passingPoint" column="passing_point" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="totalPassengerNo" column="total_passenger_no" jdbcType="INTEGER"/>
+            <result property="leftPassengerNo" column="left_passenger_no" jdbcType="INTEGER"/>
+            <result property="price" column="price" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,driver_id,departure_time,
+        arrive_time,departure_point,arrive_point,
+        passing_point,description,total_passenger_no,
+        left_passenger_no,price
+    </sql>
+</mapper>
