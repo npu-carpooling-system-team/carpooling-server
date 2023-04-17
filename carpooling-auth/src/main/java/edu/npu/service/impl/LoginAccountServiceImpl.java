@@ -1,5 +1,7 @@
 package edu.npu.service.impl;
 
+import com.alipay.api.AlipayApiException;
+import com.alipay.api.AlipayClient;
 import com.alipay.api.request.AlipaySystemOauthTokenRequest;
 import com.alipay.api.request.AlipayUserInfoShareRequest;
 import com.alipay.api.response.AlipaySystemOauthTokenResponse;
@@ -9,7 +11,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import edu.npu.common.RedisConstants;
 import edu.npu.common.ResponseCodeEnum;
 import edu.npu.common.RoleEnum;
-import edu.npu.util.JwtTokenProvider;
 import edu.npu.dto.AlipayLoginCallbackDto;
 import edu.npu.dto.CheckSmsCodeDto;
 import edu.npu.dto.UserLoginDto;
@@ -21,6 +22,7 @@ import edu.npu.mapper.DriverMapper;
 import edu.npu.mapper.LoginAccountMapper;
 import edu.npu.mapper.UserMapper;
 import edu.npu.service.LoginAccountService;
+import edu.npu.util.JwtTokenProvider;
 import edu.npu.util.RsaUtil;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
@@ -42,8 +44,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import com.alipay.api.*;
 
 /**
 * @author wangminan

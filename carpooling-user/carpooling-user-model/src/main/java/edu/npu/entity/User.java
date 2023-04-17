@@ -1,11 +1,10 @@
 package edu.npu.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+
+import java.io.Serial;
+import java.io.Serializable;
 
 /**
  * 用户表,用于记录用户的详细信息
@@ -41,20 +40,22 @@ public class User implements Serializable {
     private String alipayId;
 
     /**
-     * 是否是司机 0不是 1是
+     * 是否是司机
      */
-    private Integer isDriver;
+    private Boolean isDriver;
 
     /**
      * 是否是乘客
      */
-    private Integer isPassenger;
+    private Boolean isPassenger;
 
     /**
      * 逻辑删除字段,是否被删除,0未删除,1已删除
      */
+    @TableLogic(value = "0", delval = "1")
     private Integer isDeleted;
 
+    @Serial
     @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 16564151L;
 }
