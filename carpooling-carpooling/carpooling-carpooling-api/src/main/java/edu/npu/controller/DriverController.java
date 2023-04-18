@@ -23,7 +23,7 @@ public class DriverController {
 
     @PostMapping("/driver/carpooling")
     public R addCarpooling(@RequestBody @Validated AddCarpoolingDto addCarpoolingDto,
-                           @AuthenticationPrincipal LoginAccount loginAccount){
-        return carpoolingService.addCarpooling(addCarpoolingDto,loginAccount);
+                           @AuthenticationPrincipal LoginAccount loginAccount) {
+        return carpoolingService.addCarpooling(addCarpoolingDto, loginAccount);
     }
 }

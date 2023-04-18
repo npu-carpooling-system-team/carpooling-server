@@ -3,23 +3,23 @@ spring:
     nacos:
       server-addr: 121.41.227.153:8848
       discovery:
-        namespace: ${spring.profiles.active}1
+        namespace: ${spring.profiles.active}
         group: carpooling-system
       config:
-        namespace: ${spring.profiles.active}1
+        namespace: ${spring.profiles.active}
         extension-configs:
           # 玄学 我也不知道为什么直接写dev1不行,要这样拼接一下 反正跑起来就算成功
-          - data-id: ${spring.application.name}-${spring.profiles.active}1.yaml
+          - data-id: ${spring.application.name}-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
         shared-configs:
-          - data-id: redis-config-${spring.profiles.active}1.yaml
+          - data-id: redis-config-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
-          - data-id: db-config-${spring.profiles.active}1.yaml
+          - data-id: db-config-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
-          - data-id: security-sdk-${spring.profiles.active}1.yaml
+          - data-id: security-sdk-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
 

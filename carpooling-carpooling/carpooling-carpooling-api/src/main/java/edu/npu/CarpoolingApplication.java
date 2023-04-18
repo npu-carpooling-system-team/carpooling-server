@@ -12,6 +12,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableFeignClients(basePackages={"edu.npu.feignClient"})
 public class CarpoolingApplication {
     public static void main(String[] args) {
+        System.setProperty("nacos.logging.default.config.enabled","false");
         SpringApplication.run(CarpoolingApplication.class, args);
     }
 }
