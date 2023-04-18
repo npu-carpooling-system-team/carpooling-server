@@ -32,14 +32,14 @@ import java.io.IOException;
 import static edu.npu.common.EsConstants.CARPOOLING_INDEX;
 
 /**
-* @author wangminan
-* @description 针对表【carpooling(拼车行程表)】的数据库操作Service实现
-* @createDate 2023-04-17 19:50:53
-*/
+ * @author wangminan
+ * @description 针对表【carpooling(拼车行程表)】的数据库操作Service实现
+ * @createDate 2023-04-17 19:50:53
+ */
 @Service
 @Slf4j
 public class CarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, Carpooling>
-    implements CarpoolingService{
+        implements CarpoolingService {
 
     @Resource
     private ObjectMapper objectMapper;
@@ -53,11 +53,23 @@ public class CarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, Carpool
     @Override
     public R addCarpooling(AddCarpoolingDto addCarpoolingDto, LoginAccount loginAccount) {
         // 从loginAccount中获取driverId addCarpoolingDto中获取其他信息
-        Driver driver = driverServiceClient.getDriverWithLoginAccount(loginAccount);
+        Driver driver = driverServiceClient.getDriverWithAccountUsername(
+                loginAccount.getUsername()
+        );
         Carpooling carpooling = new Carpooling();
         carpooling.setDriverId(driver.getDriverId());
-        BeanUtil.copyProperties(addCarpoolingDto, carpooling);
+        carpooling.setDescription(addCarpoolingDto.description());
+        carpooling.setDeparturePoint(addCarpoolingDto.departurePoint());
+        carpooling.setPassingPoint(addCarpoolingDto.passingPoint());
+        carpooling.setArrivePoint(addCarpoolingDto.arrivePoint());
+        carpooling.setDepartureTime(addCarpoolingDto.departureTime());
+        carpooling.setArriveTime(addCarpoolingDto.arriveTime());
+        carpooling.setTotalPassengerNo(addCarpoolingDto.totalPassengerNo());
+        carpooling.setLeftPassengerNo(addCarpoolingDto.leftPassengerNo());
+        carpooling.setPrice(addCarpoolingDto.price());
+        log.info("carpooling:{}", carpooling);
         // 先写到MySQL 再写到ElasticSearch 完成新增过程
+        log.info("addCarpoolingDto:{}", addCarpoolingDto);
         // MySQL
         boolean saveMySQL = save(carpooling);
         if (!saveMySQL) {
@@ -65,7 +77,7 @@ public class CarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, Carpool
                     "新增拼车行程失败,MySQL数据库操作失败");
         }
         // ElasticSearch 使用代理类防止失效
-        boolean saveEs = ((CarpoolingService)AopContext.currentProxy())
+        boolean saveEs = ((CarpoolingServiceImpl) AopContext.currentProxy())
                 .saveCarpoolingToEs(carpooling);
         if (!saveEs) {
             return R.error(ResponseCodeEnum.ServerError,
@@ -74,7 +86,6 @@ public class CarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, Carpool
         return R.ok();
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean saveCarpoolingToEs(Carpooling carpooling) {
         CarpoolingDoc carpoolingDoc = new CarpoolingDoc(carpooling);
@@ -98,7 +109,7 @@ public class CarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, Carpool
         // 3.发送请求
         IndexResponse index;
         try {
-             index = restHighLevelClient.index(request, RequestOptions.DEFAULT);
+            index = restHighLevelClient.index(request, RequestOptions.DEFAULT);
         } catch (IOException e) {
             log.error("新增拼车行程失败,carpoolingDoc:{}", carpoolingDoc);
             throw new RuntimeException(e);

@@ -16,7 +16,4 @@ public interface CarpoolingService extends IService<Carpooling> {
 
 
     R addCarpooling(AddCarpoolingDto addCarpoolingDto, LoginAccount loginAccount);
-
-    @Transactional(rollbackFor = Exception.class)
-    boolean saveCarpoolingToEs(Carpooling carpooling);
 }

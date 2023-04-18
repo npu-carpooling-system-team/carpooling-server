@@ -39,9 +39,11 @@ public class UserController {
         return userService.deleteAccount(loginAccount);
     }
 
-    @PostMapping("/getDriver")
-    public Driver getDriverWithLoginAccount(@RequestBody LoginAccount loginAccount){
-        return userService.getDriverWithLoginAccount(loginAccount);
+    @GetMapping("/getDriver")
+    public Driver getDriverWithAccountUsername(
+            @RequestParam("username") String username
+    ){
+        return userService.getDriverWithAccountUsername(username);
     }
 
 }

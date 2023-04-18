@@ -24,7 +24,6 @@ import edu.npu.util.JwtTokenProvider;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -201,10 +200,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public Driver getDriverWithLoginAccount(LoginAccount loginAccount) {
+    public Driver getDriverWithAccountUsername(String username) {
         User user = this.getOne(
                 new LambdaQueryWrapper<User>()
-                        .eq(User::getUsername, loginAccount.getUsername()));
+                        .eq(User::getUsername, username));
         if (user == null) {
             log.error("用户不存在");
             return null;
