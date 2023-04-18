@@ -12,9 +12,9 @@ public record PutUserInfoDto(
 
         String alipayId,
         String avgScore,
-        String driverExpireDate,
-        String driverName,
-        String driverPersonalId,
+        String driversExpireDate,
+        String driversName,
+        String driversPersonalId,
         String driversLicenseNo,
         String driversLicenseType,
         String driversPlateNo,
