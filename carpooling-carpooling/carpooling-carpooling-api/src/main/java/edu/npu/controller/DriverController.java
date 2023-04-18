@@ -8,6 +8,7 @@ import jakarta.annotation.Resource;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,5 +26,11 @@ public class DriverController {
     public R addCarpooling(@RequestBody @Validated AddCarpoolingDto addCarpoolingDto,
                            @AuthenticationPrincipal LoginAccount loginAccount) {
         return carpoolingService.addCarpooling(addCarpoolingDto, loginAccount);
+    }
+
+    @PutMapping("/driver/carpooling")
+    public R updateCarpooling(@RequestBody @Validated AddCarpoolingDto addCarpoolingDto,
+                              @AuthenticationPrincipal LoginAccount loginAccount) {
+        return carpoolingService.updateCarpooling(addCarpoolingDto, loginAccount);
     }
 }

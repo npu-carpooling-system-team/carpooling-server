@@ -14,6 +14,15 @@ import org.springframework.transaction.annotation.Transactional;
 */
 public interface CarpoolingService extends IService<Carpooling> {
 
-
+    @Transactional(rollbackFor = Exception.class)
     R addCarpooling(AddCarpoolingDto addCarpoolingDto, LoginAccount loginAccount);
+
+    @Transactional(rollbackFor = Exception.class)
+    boolean saveCarpoolingToEs(Carpooling carpooling);
+
+    @Transactional(rollbackFor = Exception.class)
+    R updateCarpooling(AddCarpoolingDto addCarpoolingDto, LoginAccount loginAccount);
+
+    @Transactional(rollbackFor = Exception.class)
+    boolean updateCarpoolingToEs(Carpooling carpooling);
 }

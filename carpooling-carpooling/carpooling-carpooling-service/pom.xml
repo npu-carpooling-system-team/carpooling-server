@@ -41,11 +41,6 @@
             <artifactId>elasticsearch-rest-high-level-client</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aop</artifactId>
-        </dependency>
-
         <!-- Spring Cloud 微服务远程调用 -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
