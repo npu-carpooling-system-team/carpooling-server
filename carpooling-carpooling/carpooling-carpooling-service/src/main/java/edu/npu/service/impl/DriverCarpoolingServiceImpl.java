@@ -10,18 +10,20 @@ import edu.npu.doc.CarpoolingDoc;
 import edu.npu.dto.AddCarpoolingDto;
 import edu.npu.dto.EditCarpoolingDto;
 import edu.npu.dto.PageQueryDto;
-import edu.npu.vo.PageResultVo;
 import edu.npu.entity.Carpooling;
 import edu.npu.entity.Driver;
 import edu.npu.entity.LoginAccount;
+import edu.npu.exception.CarpoolingError;
 import edu.npu.exception.CarpoolingException;
 import edu.npu.feignClient.DriverServiceClient;
 import edu.npu.mapper.CarpoolingMapper;
 import edu.npu.service.DriverCarpoolingService;
+import edu.npu.vo.PageResultVo;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
@@ -47,6 +49,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static edu.npu.common.EsConstants.CARPOOLING_INDEX;
 
@@ -67,7 +71,13 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     private DriverServiceClient driverServiceClient;
 
     @Resource
+    private EsService esService;
+
+    @Resource
     private RestHighLevelClient restHighLevelClient;
+
+    // 负责执行缓存到ES任务的线程池
+    private static final ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -85,52 +95,16 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
             return R.error(ResponseCodeEnum.ServerError,
                     "新增拼车行程失败,MySQL数据库操作失败,请检查参数合法性");
         }
-        // ElasticSearch 使用代理类防止失效
-        boolean saveEs = ((DriverCarpoolingService) AopContext.currentProxy())
-                .saveCarpoolingToEs(carpooling);
-        if (!saveEs) {
-            return R.error(ResponseCodeEnum.ServerError,
-                    "新增拼车行程失败,ElasticSearch数据库操作失败");
-        }
+        // ElasticSearch 使用代理类防止失效 新起一个线程
+        // 另起一个线程来完成操作 避免阻塞主线程
+        cachedThreadPool.execute(() -> {
+            boolean saveEs = esService.saveCarpoolingToEs(carpooling);
+            if (!saveEs) {
+                log.error("直接新增拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
+                        carpooling);
+            }
+        });
         return R.ok();
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean saveCarpoolingToEs(Carpooling carpooling) {
-        log.info("开始保存carpooling:{}到ElasticSearch", carpooling);
-        CarpoolingDoc carpoolingDoc = new CarpoolingDoc(carpooling);
-        String jsonDoc;
-        try {
-            jsonDoc = objectMapper.writeValueAsString(carpoolingDoc);
-        } catch (JsonProcessingException e) {
-            log.error("carpooling对象:{}无法转换为json字符串", carpooling);
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-        if (StrUtil.isEmpty(jsonDoc)) {
-            log.error("carpooling对象:{}无法转换为json字符串", carpooling);
-            throw new RuntimeException("carpooling对象无法转换为json字符串");
-        }
-        // 1.准备Request
-        IndexRequest request = new IndexRequest(CARPOOLING_INDEX)
-                .id(String.valueOf(carpoolingDoc.getId()));
-        // 2.准备请求参数DSL，其实就是文档的JSON字符串
-        request.source(jsonDoc, XContentType.JSON);
-        // 3.发送请求
-        IndexResponse index;
-        try {
-            index = restHighLevelClient.index(request, RequestOptions.DEFAULT);
-        } catch (IOException e) {
-            log.error("新增拼车行程失败,carpoolingDoc:{}", carpoolingDoc);
-            throw new RuntimeException(e);
-        }
-        // 判断返回状态
-        if (index == null || !index.status().equals(RestStatus.CREATED)) {
-            log.error("新增拼车行程失败,carpoolingDoc:{},", carpoolingDoc);
-            throw new RuntimeException("新增拼车行程失败");
-        }
-        return true;
     }
 
     @Override
@@ -173,49 +147,15 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
             return R.error(ResponseCodeEnum.ServerError,
                     "修改拼车行程失败,MySQL数据库操作失败,请确认参数合法性");
         }
-        // ES
-        boolean saveEs = ((DriverCarpoolingService) AopContext.currentProxy())
-                .updateCarpoolingToEs(carpooling);
-        if (!saveEs) {
-            return R.error(ResponseCodeEnum.ServerError,
-                    "修改拼车行程失败,ElasticSearch数据库操作失败");
-        }
+        // ES 同样新起一个线程来避免阻塞主线程
+        cachedThreadPool.execute(() -> {
+            boolean saveEs = esService.saveCarpoolingToEs(carpooling);
+            if (!saveEs) {
+                log.error("直接修改拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
+                        carpooling);
+            }
+        });
         return R.ok();
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean updateCarpoolingToEs(Carpooling carpooling) {
-        CarpoolingDoc carpoolingDoc = new CarpoolingDoc(carpooling);
-        // 1.准备Request
-        UpdateRequest request =
-                new UpdateRequest(
-                        CARPOOLING_INDEX,
-                        String.valueOf(carpoolingDoc.getId()));
-        // 2.准备参数
-        String jsonDoc;
-        try {
-            jsonDoc = objectMapper.writeValueAsString(carpoolingDoc);
-        } catch (JsonProcessingException e) {
-            log.error("carpooling对象:{}无法转换为json字符串", carpooling);
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-        request.doc(jsonDoc, XContentType.JSON);
-        UpdateResponse updateResponse;
-        // 3.发送请求
-        try {
-            updateResponse =
-                    restHighLevelClient.update(request, RequestOptions.DEFAULT);
-        } catch (IOException e) {
-            log.error("修改拼车行程失败,ES出错,carpoolingDoc:{}", carpoolingDoc);
-            throw new RuntimeException(e);
-        }
-        if (updateResponse == null || !updateResponse.status().equals(RestStatus.OK)) {
-            log.error("修改拼车行程失败,carpoolingDoc:{},返回值:{}", carpoolingDoc, updateResponse);
-            throw new RuntimeException("修改拼车行程失败");
-        }
-        return true;
     }
 
     @Override
@@ -242,16 +182,14 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
             return R.error(ResponseCodeEnum.ServerError,
                     "删除拼车行程失败,MySQL数据库操作失败,请确认参数合法性");
         }
-        // ES
-        // 1.准备Request      // DELETE /hotel/_doc/{id}
-        DeleteRequest request = new DeleteRequest(CARPOOLING_INDEX, String.valueOf(id));
-        // 2.发送请求
-        try {
-            restHighLevelClient.delete(request, RequestOptions.DEFAULT);
-        } catch (IOException e) {
-            log.error("删除拼车行程失败,ES出错,id:{}", id);
-            throw new RuntimeException(e);
-        }
+        // ES 还是要新起一个线程来避免阻塞主线程
+        cachedThreadPool.execute(() -> {
+            boolean removeEs = esService.deleteCarpoolingFromEs(id);
+            if (!removeEs) {
+                log.error("直接删除拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
+                        carpooling);
+            }
+        });
         return R.ok();
     }
 
@@ -292,7 +230,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     }
 
     @Override
-    public void buildBasicQuery(Long driverId, PageQueryDto pageQueryDto, SearchRequest searchRequest){
+    public void buildBasicQuery(Long driverId, PageQueryDto pageQueryDto, SearchRequest searchRequest) {
         BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(pageQueryDto);
         // 3. DriverId一致
         boolQueryBuilder.must(QueryBuilders.termQuery("driverId", driverId));
@@ -321,7 +259,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     }
 
     @Override
-    public void buildBasicQuery(PageQueryDto pageQueryDto, SearchRequest searchRequest){
+    public void buildBasicQuery(PageQueryDto pageQueryDto, SearchRequest searchRequest) {
         BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(pageQueryDto);
         // 拼装
         searchRequest.source().query(boolQueryBuilder);
@@ -350,7 +288,3 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         return boolQueryBuilder;
     }
 }
-
-
-
-

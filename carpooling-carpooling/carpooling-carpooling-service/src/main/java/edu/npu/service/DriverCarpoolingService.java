@@ -22,13 +22,7 @@ public interface DriverCarpoolingService extends IService<Carpooling> {
     R addCarpooling(AddCarpoolingDto addCarpoolingDto, LoginAccount loginAccount);
 
     @Transactional(rollbackFor = Exception.class)
-    boolean saveCarpoolingToEs(Carpooling carpooling);
-
-    @Transactional(rollbackFor = Exception.class)
     R updateCarpooling(Long id, EditCarpoolingDto addCarpoolingDto, LoginAccount loginAccount);
-
-    @Transactional(rollbackFor = Exception.class)
-    boolean updateCarpoolingToEs(Carpooling carpooling);
 
     @Transactional(rollbackFor = Exception.class)
     R deleteCarpooling(Long id, LoginAccount loginAccount);

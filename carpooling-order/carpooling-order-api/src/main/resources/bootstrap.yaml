@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: order-api
+  profiles:
+    active: dev

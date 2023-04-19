@@ -19,7 +19,7 @@
         <module>../carpooling-user</module>
         <module>../carpooling-security-sdk</module>
         <module>../carpooling-carpooling</module>
-        <module>../Carpooling-order</module>
+        <module>../carpooling-order</module>
     </modules>
 
     <profiles>

@@ -1,7 +1,6 @@
 package edu.npu.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import edu.npu.common.ResponseCodeEnum;
 import edu.npu.entity.Carpooling;
 import edu.npu.entity.Driver;
 import edu.npu.feignClient.DriverServiceClient;
@@ -12,7 +11,10 @@ import edu.npu.vo.SimpleDriverVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author : [wangminan]

@@ -59,15 +59,16 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
     static {
         //加载白名单
         try (
-                InputStream resourceAsStream = GatewayAuthFilter.class.getResourceAsStream("/security-whitelist.properties");
+                InputStream resourceAsStream =
+                        GatewayAuthFilter.class.getResourceAsStream("/security-whitelist.properties");
         ) {
             Properties properties = new Properties();
             properties.load(resourceAsStream);
             Set<String> strings = properties.stringPropertyNames();
-            whitelist= new ArrayList<>(strings);
+            whitelist = new ArrayList<>(strings);
 
         } catch (Exception e) {
-            log.error("加载/security-whitelist.properties出错:{}",e.getMessage());
+            log.error("加载/security-whitelist.properties出错:{}", e.getMessage());
             e.printStackTrace();
         }
     }
@@ -85,14 +86,14 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
         //检查token是否存在
         String token = getTokenFromHeader(exchange);
         if (StrUtil.isBlank(token)) {
-            return buildReturnMono("您需经认证方可访问",exchange);
+            return buildReturnMono("您需经认证方可访问", exchange);
         }
         String username = jwtTokenProvider.extractUsername(token);
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             // 从Redis中获取user信息
             String cachedToken = stringRedisTemplate.opsForValue().get(TOKEN_KEY_PREFIX + username);
             if (cachedToken == null || !cachedToken.equals(token)) {
-                return buildReturnMono("认证令牌无效",exchange);
+                return buildReturnMono("认证令牌无效", exchange);
             }
             // 查数据库获取用户
             LoginAccount loginAccount = loginAccountService.getOne(
@@ -104,7 +105,7 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
                 return chain.filter(exchange);
             }
         }
-        return buildReturnMono("认证令牌无效",exchange);
+        return buildReturnMono("认证令牌无效", exchange);
     }
 
     @Override

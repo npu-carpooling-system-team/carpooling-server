@@ -1,5 +1,8 @@
 spring:
   cloud:
+    config:
+      # 配置本地配置文件最优先
+      override-none: true
     nacos:
       server-addr: 60.204.153.158:8848
       discovery:
@@ -13,12 +16,13 @@ spring:
             group: carpooling-system
             refresh: true
         shared-configs:
-          - data-id: redis-config-${spring.profiles.active}.yaml
+          - data-id: security-sdk-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
           - data-id: db-config-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
-          - data-id: security-sdk-${spring.profiles.active}.yaml
+          - data-id: redis-config-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
+
