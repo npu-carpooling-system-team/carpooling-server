@@ -4,6 +4,8 @@ import edu.npu.dto.AddCarpoolingDto;
 import edu.npu.dto.EditCarpoolingDto;
 import edu.npu.dto.PageQueryDto;
 import edu.npu.entity.LoginAccount;
+import edu.npu.exception.CarpoolingError;
+import edu.npu.exception.CarpoolingException;
 import edu.npu.service.DriverCarpoolingService;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
@@ -21,12 +23,13 @@ import java.util.Date;
  */
 @RestController
 @Slf4j
+@RequestMapping("/driver")
 public class DriverController {
 
     @Resource
     private DriverCarpoolingService driverCarpoolingService;
 
-    @GetMapping("/driver/carpooling")
+    @GetMapping("/carpooling")
     public R getCarpooling(@RequestParam Integer pageNum,
                            @RequestParam Integer pageSize,
                            @RequestParam(required = false) String query,
@@ -47,6 +50,7 @@ public class DriverController {
                 pageQueryDto.setDepartureTime(date);
             } catch (Exception e) {
                 log.error("departureTime时间转换错误:{}", departureTime);
+                CarpoolingException.cast(CarpoolingError.PARAMS_ERROR, "时间转换错误");
             }
         }
         if (arriveTime != null) {
@@ -55,26 +59,27 @@ public class DriverController {
                 pageQueryDto.setArriveTime(date);
             } catch (Exception e) {
                 log.error("arriveTime时间转换错误:{}", arriveTime);
+                CarpoolingException.cast(CarpoolingError.PARAMS_ERROR, "时间转换错误");
             }
         }
         log.info("pageQueryDto: {}", pageQueryDto);
         return driverCarpoolingService.getCarpooling(pageQueryDto, loginAccount);
     }
 
-    @PostMapping("/driver/carpooling")
+    @PostMapping("/carpooling")
     public R addCarpooling(@RequestBody @Validated AddCarpoolingDto addCarpoolingDto,
                            @AuthenticationPrincipal LoginAccount loginAccount) {
         return driverCarpoolingService.addCarpooling(addCarpoolingDto, loginAccount);
     }
 
-    @PutMapping("/driver/carpooling/{id}")
+    @PutMapping("/carpooling/{id}")
     public R updateCarpooling(@PathVariable("id") Long id,
                               @RequestBody @Validated EditCarpoolingDto editCarpoolingDto,
                               @AuthenticationPrincipal LoginAccount loginAccount) {
         return driverCarpoolingService.updateCarpooling(id, editCarpoolingDto, loginAccount);
     }
 
-    @DeleteMapping("/driver/carpooling/{id}")
+    @DeleteMapping("/carpooling/{id}")
     public R deleteCarpooling(@PathVariable("id") Long id,
                               @AuthenticationPrincipal LoginAccount loginAccount) {
         return driverCarpoolingService.deleteCarpooling(id, loginAccount);

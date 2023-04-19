@@ -10,7 +10,7 @@ import edu.npu.doc.CarpoolingDoc;
 import edu.npu.dto.AddCarpoolingDto;
 import edu.npu.dto.EditCarpoolingDto;
 import edu.npu.dto.PageQueryDto;
-import edu.npu.dto.PageResultDto;
+import edu.npu.vo.PageResultVo;
 import edu.npu.entity.Carpooling;
 import edu.npu.entity.Driver;
 import edu.npu.entity.LoginAccount;
@@ -43,7 +43,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 import static edu.npu.common.EsConstants.CARPOOLING_INDEX;
 
@@ -271,19 +274,60 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
             // 3.发送请求
             SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT);
             // 4.解析响应
-            PageResultDto pageResult = handlePageResponse(response);
-            R r = new R();
-            r.put("code", ResponseCodeEnum.Success.getValue());
-            r.put("total", pageResult.total());
-            r.put("data", pageResult.data());
-            return r;
+            return resolveRestResponse(response);
         } catch (IOException e) {
             CarpoolingException.cast("获取拼车行程失败");
         }
-        return null;
+        return R.ok("数据为空");
     }
 
-    private void buildBasicQuery(Long driverId, PageQueryDto pageQueryDto, SearchRequest searchRequest){
+    @Override
+    public R resolveRestResponse(SearchResponse response) {
+        PageResultVo pageResult = handlePageResponse(response);
+        R r = new R();
+        r.put("code", ResponseCodeEnum.Success.getValue());
+        r.put("total", pageResult.total());
+        r.put("data", pageResult.data());
+        return r;
+    }
+
+    @Override
+    public void buildBasicQuery(Long driverId, PageQueryDto pageQueryDto, SearchRequest searchRequest){
+        BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(pageQueryDto);
+        // 3. DriverId一致
+        boolQueryBuilder.must(QueryBuilders.termQuery("driverId", driverId));
+        // 拼装
+        searchRequest.source().query(boolQueryBuilder);
+    }
+
+    private PageResultVo handlePageResponse(SearchResponse response) {
+        SearchHits searchHits = response.getHits();
+        // 4.1.总条数
+        long total = searchHits.getTotalHits().value;
+        // 4.2.获取文档数组
+        SearchHit[] hits = searchHits.getHits();
+        // 4.3.遍历
+        List<CarpoolingDoc> carpoolingDocs = new ArrayList<>(hits.length);
+        for (SearchHit hit : hits) {
+            // 4.4.获取source
+            String json = hit.getSourceAsString();
+            // 4.5.反序列化
+            CarpoolingDoc carpoolingDoc
+                    = objectMapper.convertValue(json, CarpoolingDoc.class);
+            // 4.9.放入集合
+            carpoolingDocs.add(carpoolingDoc);
+        }
+        return new PageResultVo(total, carpoolingDocs);
+    }
+
+    @Override
+    public void buildBasicQuery(PageQueryDto pageQueryDto, SearchRequest searchRequest){
+        BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(pageQueryDto);
+        // 拼装
+        searchRequest.source().query(boolQueryBuilder);
+    }
+
+    private static BoolQueryBuilder getBoolQueryBuilder(PageQueryDto pageQueryDto) {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         // 1.关键字
         String keyword = pageQueryDto.getQuery();
@@ -303,30 +347,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
             boolQueryBuilder.must(QueryBuilders.rangeQuery("arriveTime")
                     .lte(arriveTime));
         }
-        // 3. DriverId一致
-        boolQueryBuilder.must(QueryBuilders.termQuery("driverId", driverId));
-        // 拼装
-        searchRequest.source().query(boolQueryBuilder);
-    }
-
-    private PageResultDto handlePageResponse(SearchResponse response) {
-        SearchHits searchHits = response.getHits();
-        // 4.1.总条数
-        long total = searchHits.getTotalHits().value;
-        // 4.2.获取文档数组
-        SearchHit[] hits = searchHits.getHits();
-        // 4.3.遍历
-        List<CarpoolingDoc> carpoolingDocs = new ArrayList<>(hits.length);
-        for (SearchHit hit : hits) {
-            // 4.4.获取source
-            String json = hit.getSourceAsString();
-            // 4.5.反序列化
-            CarpoolingDoc carpoolingDoc
-                    = objectMapper.convertValue(json, CarpoolingDoc.class);
-            // 4.9.放入集合
-            carpoolingDocs.add(carpoolingDoc);
-        }
-        return new PageResultDto(total, carpoolingDocs);
+        return boolQueryBuilder;
     }
 }
 

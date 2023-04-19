@@ -7,6 +7,8 @@ import edu.npu.dto.PageQueryDto;
 import edu.npu.entity.Carpooling;
 import edu.npu.entity.LoginAccount;
 import edu.npu.vo.R;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -32,4 +34,10 @@ public interface DriverCarpoolingService extends IService<Carpooling> {
     R deleteCarpooling(Long id, LoginAccount loginAccount);
 
     R getCarpooling(PageQueryDto pageQueryDto, LoginAccount loginAccount);
+
+    R resolveRestResponse(SearchResponse response);
+
+    void buildBasicQuery(Long driverId, PageQueryDto pageQueryDto, SearchRequest searchRequest);
+
+    void buildBasicQuery(PageQueryDto pageQueryDto, SearchRequest searchRequest);
 }
