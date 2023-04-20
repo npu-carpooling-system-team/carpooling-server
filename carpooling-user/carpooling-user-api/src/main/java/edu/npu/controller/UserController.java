@@ -1,8 +1,10 @@
 package edu.npu.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import edu.npu.dto.PutUserInfoDto;
 import edu.npu.entity.Driver;
 import edu.npu.entity.LoginAccount;
+import edu.npu.entity.User;
 import edu.npu.service.DriverService;
 import edu.npu.service.UserService;
 import edu.npu.vo.R;
@@ -59,12 +61,33 @@ public class UserController {
     }
 
     /**
-     * 获取司机列表
+     * 远程调用接口 获取司机列表
      *
      * @return List<Driver>
      */
     @GetMapping("/getDriverList")
     public List<Driver> getDriverList() {
         return driverService.list();
+    }
+
+    /**
+     * 远程调用接口 通过用户名获取用户信息
+     * @param username 用户名
+     * @return User
+     */
+    @GetMapping("/getUser")
+    public User getUserWithAccountUsername(
+            @RequestParam("username") String username
+    ) {
+        return userService.getOne(
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getUsername, username));
+    }
+
+    @GetMapping("/getUser/{id}")
+    public User getUserWithId(
+            @PathVariable("id") Long id
+    ) {
+        return userService.getById(id);
     }
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu.npu.mapper.ChatMapper">
+
+    <resultMap id="BaseResultMap" type="edu.npu.entity.Chat">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="fromUserId" column="from_user_id" jdbcType="BIGINT"/>
+            <result property="toUserId" column="to_user_id" jdbcType="BIGINT"/>
+            <result property="message" column="message" jdbcType="VARCHAR"/>
+            <result property="sendTime" column="send_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,from_user_id,to_user_id,
+        message,send_time
+    </sql>
+</mapper>
