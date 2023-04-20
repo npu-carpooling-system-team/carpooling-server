@@ -3,6 +3,10 @@ package edu.npu.mapper;
 import edu.npu.entity.Chat;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 /**
 * @author wangminan
@@ -13,6 +17,10 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface ChatMapper extends BaseMapper<Chat> {
 
+    @Select("SELECT * FROM chat WHERE id % #{shardTotal} = #{shardIndex} limit #{count}")
+    List<Chat> selectListByShardIndex(@Param("shardTotal")int shardIndex,
+                                      @Param("shardIndex")int shardTotal,
+                                      @Param("count") int count);
 }
 
 

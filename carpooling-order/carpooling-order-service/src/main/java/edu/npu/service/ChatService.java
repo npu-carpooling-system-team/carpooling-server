@@ -16,4 +16,6 @@ public interface ChatService extends IService<Chat> {
     R addMessage(AddMessageDto addMessageDto, LoginAccount loginAccount);
 
     R getMessage(LoginAccount loginAccount);
+
+    boolean deleteChatRecord(int shardIndex, int shardTotal, int count);
 }

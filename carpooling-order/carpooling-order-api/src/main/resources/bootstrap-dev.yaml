@@ -1,8 +1,5 @@
 spring:
   cloud:
-    config:
-      # 配置本地配置文件最优先
-      override-none: true
     nacos:
       server-addr: 60.204.153.158:8848
       discovery:
@@ -28,4 +25,8 @@ spring:
           - data-id: chat-xxl-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
-
+# TODO 这配置只是暂时这么写 仅用于远程单机调试 生产环境下需要通过脚本获取本机IP地址,之后再DOCKERFILE中通过环境变量传入
+xxl:
+  job:
+    executor:
+      ip: 60.204.153.158

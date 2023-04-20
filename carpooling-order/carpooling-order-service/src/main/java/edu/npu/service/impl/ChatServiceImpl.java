@@ -1,5 +1,7 @@
 package edu.npu.service.impl;
 
+import cn.hutool.core.date.DateField;
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import edu.npu.common.RedisConstants;
@@ -30,6 +32,9 @@ import java.util.*;
 @Slf4j
 public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         implements ChatService {
+
+    @Resource
+    private ChatMapper chatMapper;
 
     @Resource
     private UserServiceClient userServiceClient;
@@ -150,6 +155,38 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         Map<String, Object> result = new HashMap<>();
         result.put("list", list);
         return R.ok(result);
+    }
+
+    /**
+     * 接收XXL-JOB的分片调度 删除已读且过期的聊天记录
+     *
+     * @param shardIndex 分片索引
+     * @param shardTotal 分片总数
+     * @param count 一次任务删除的数量
+     * @return 是否删除成功
+     */
+    @Override
+    public boolean deleteChatRecord(int shardIndex, int shardTotal, int count) {
+        // 根据给出的分片索引和分片总数,计算出需要删除的聊天记录的id范围
+        // 例如:分片索引为0,分片总数为2,则需要删除id为1,3,5,7,9...的聊天记录
+        List<Chat> chats = chatMapper.selectListByShardIndex(shardIndex, shardTotal, count);
+        // 遍历 判断时间与是否已读(redis) 若已读且过期则删除
+        Date now = new Date();
+        for (Chat chat : chats){
+            // 判断是否已读 如果存在键值对则说明未读 跳过
+            if (Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(
+                    RedisConstants.MESSAGE_NOTICE_KEY + chat.getToUserId(),
+                    chat.getFromUserId().toString()
+            ))){
+                continue;
+            }
+            // 判断是否过期 使用DateUtil
+            if (chat.getSendTime().before(
+                    DateUtil.offset(now, DateField.DAY_OF_YEAR, -7))){
+                chatMapper.deleteById(chat.getId());
+            }
+        }
+        return true;
     }
 }
 
