@@ -9,7 +9,7 @@ import java.util.List;
 public record MessageListItem(
         boolean hasNewMessage,
         // 聊天对象的User表ID
-        FromUserVo fromUserVo,
+        ToUserVo toUserVo,
         // 聊天内容
         List<Chat> chats
 ) {

@@ -2,6 +2,7 @@ package edu.npu.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import edu.npu.common.RedisConstants;
 import edu.npu.common.ResponseCodeEnum;
 import edu.npu.dto.AddMessageDto;
 import edu.npu.entity.Chat;
@@ -10,7 +11,7 @@ import edu.npu.entity.User;
 import edu.npu.feignClient.UserServiceClient;
 import edu.npu.service.ChatService;
 import edu.npu.mapper.ChatMapper;
-import edu.npu.vo.FromUserVo;
+import edu.npu.vo.ToUserVo;
 import edu.npu.vo.MessageListItem;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
@@ -57,7 +58,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         // 将消息通知存入Redis 我的想法是用一个set
         // key值为 communication:notice:{toUserId} value在set中加入fromUserId
         stringRedisTemplate.opsForSet().add(
-                "communication:notice:" + toUserId,
+                RedisConstants.MESSAGE_NOTICE_KEY + toUserId,
                 fromUserId.toString()
         );
         return R.ok();
@@ -106,20 +107,34 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
             Long fromUserId = chat.getFromUserId();
             Long toUserId = chat.getToUserId();
             // 从Redis中获取通知信息
-            boolean hasNewMessage =
-                    Boolean.TRUE.equals(Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(
-                            "communication:notice:" + currUser.getId(),
+            boolean hasNewMessage = false;
+            // 从Redis中删除通知信息
+            if (Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(
+                            RedisConstants.MESSAGE_NOTICE_KEY + currUser.getId(),
                             fromUserId.toString()
-                    )) || Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(
-                            "communication:notice:" + currUser.getId(),
+                    ))){
+
+                stringRedisTemplate.opsForSet().remove(
+                        RedisConstants.MESSAGE_NOTICE_KEY + currUser.getId(),
+                        fromUserId.toString()
+                );
+                hasNewMessage = true;
+            } else if (Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(
+                            RedisConstants.MESSAGE_NOTICE_KEY + currUser.getId(),
                             toUserId.toString()
-                    )));
+                    ))){
+                stringRedisTemplate.opsForSet().remove(
+                        RedisConstants.MESSAGE_NOTICE_KEY + currUser.getId(),
+                        toUserId.toString()
+                );
+                hasNewMessage = true;
+            }
             // 构建
             User oppositeUser = userServiceClient.getUserWithId(
                     fromUserId.equals(currUser.getId())
                             ? toUserId : fromUserId
             );
-            FromUserVo fromUserVo = FromUserVo.builder()
+            ToUserVo toUserVo = ToUserVo.builder()
                     .id(oppositeUser.getId())
                     .username(oppositeUser.getUsername())
                     .avatar(oppositeUser.getUserImage())
@@ -127,7 +142,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
             MessageListItem messageListItem =
                     MessageListItem.builder()
                             .hasNewMessage(hasNewMessage)
-                            .fromUserVo(fromUserVo)
+                            .toUserVo(toUserVo)
                             .chats(item)
                             .build();
             list.add(messageListItem);

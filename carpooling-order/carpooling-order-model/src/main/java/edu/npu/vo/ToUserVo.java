@@ -7,7 +7,7 @@ import lombok.Builder;
  * @description : [一句话描述该类的功能]
  */
 @Builder
-public record FromUserVo(
+public record ToUserVo(
         Long id,
         String username,
         String avatar

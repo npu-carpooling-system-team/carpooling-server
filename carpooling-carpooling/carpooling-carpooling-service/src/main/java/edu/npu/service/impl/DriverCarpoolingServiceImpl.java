@@ -89,13 +89,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         Carpooling carpooling = new Carpooling();
         BeanUtils.copyProperties(addCarpoolingDto, carpooling);
         carpooling.setDriverId(driver.getDriverId());
-        // MySQL
-        boolean saveMySQL = save(carpooling);
-        if (!saveMySQL) {
-            return R.error(ResponseCodeEnum.ServerError,
-                    "新增拼车行程失败,MySQL数据库操作失败,请检查参数合法性");
-        }
-        // ElasticSearch 使用代理类防止失效 新起一个线程
+        // ElasticSearch 新起一个线程
         // 另起一个线程来完成操作 避免阻塞主线程
         cachedThreadPool.execute(() -> {
             boolean saveEs = esService.saveCarpoolingToEs(carpooling);
@@ -104,6 +98,12 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                         carpooling);
             }
         });
+        // MySQL
+        boolean saveMySQL = save(carpooling);
+        if (!saveMySQL) {
+            return R.error(ResponseCodeEnum.ServerError,
+                    "新增拼车行程失败,MySQL数据库操作失败,请检查参数合法性");
+        }
         return R.ok();
     }
 
@@ -141,12 +141,6 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         Carpooling carpooling = new Carpooling();
         carpooling.setDriverId(driver.getDriverId());
         BeanUtils.copyProperties(editCarpoolingDto, carpooling);
-        // MySQL
-        boolean saveMySQL = updateById(carpooling);
-        if (!saveMySQL) {
-            return R.error(ResponseCodeEnum.ServerError,
-                    "修改拼车行程失败,MySQL数据库操作失败,请确认参数合法性");
-        }
         // ES 同样新起一个线程来避免阻塞主线程
         cachedThreadPool.execute(() -> {
             boolean saveEs = esService.saveCarpoolingToEs(carpooling);
@@ -155,6 +149,12 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                         carpooling);
             }
         });
+        // MySQL
+        boolean saveMySQL = updateById(carpooling);
+        if (!saveMySQL) {
+            return R.error(ResponseCodeEnum.ServerError,
+                    "修改拼车行程失败,MySQL数据库操作失败,请确认参数合法性");
+        }
         return R.ok();
     }
 
@@ -176,12 +176,6 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                     "不允许删除行程,出发前6小时内不允许删除行程");
         }
         // MySQL和ES都要删掉
-        // MySQL
-        boolean removeMySQL = removeById(id);
-        if (!removeMySQL) {
-            return R.error(ResponseCodeEnum.ServerError,
-                    "删除拼车行程失败,MySQL数据库操作失败,请确认参数合法性");
-        }
         // ES 还是要新起一个线程来避免阻塞主线程
         cachedThreadPool.execute(() -> {
             boolean removeEs = esService.deleteCarpoolingFromEs(id);
@@ -190,6 +184,12 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                         carpooling);
             }
         });
+        // MySQL
+        boolean removeMySQL = removeById(id);
+        if (!removeMySQL) {
+            return R.error(ResponseCodeEnum.ServerError,
+                    "删除拼车行程失败,MySQL数据库操作失败,请确认参数合法性");
+        }
         return R.ok();
     }
 
