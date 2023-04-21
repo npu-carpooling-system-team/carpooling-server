@@ -1,11 +1,13 @@
 package edu.npu.feignClient;
 
+import edu.npu.entity.Driver;
 import edu.npu.entity.User;
 import edu.npu.feignClient.fallback.UserServiceClientFallbackFactory;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 /**
  * @author : [wangminan]
@@ -16,13 +18,23 @@ import org.springframework.web.bind.annotation.RequestParam;
         fallbackFactory = UserServiceClientFallbackFactory.class)
 public interface UserServiceClient {
 
-    @GetMapping("/getUser")
-    User getUserWithAccountUsername(
+    @GetMapping("/getUserByUsername")
+    User getUserByAccountUsername(
             @RequestParam("username") String username
     );
 
-    @GetMapping("/getUser/{id}")
+    @GetMapping("/getUserById")
     User getUserById(
-            @PathVariable("id") Long id
+            // feign的要求是一定要写value 不能省略
+            // 好吧 不要用path来传参数 会变得不幸
+            @RequestParam("id") Long id
     );
+
+    @GetMapping("/getDriver")
+    Driver getDriverWithAccountUsername(
+            @RequestParam("username") String username
+    );
+
+    @GetMapping("/getDriverList")
+    List<Driver> getDriverList();
 }

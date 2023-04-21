@@ -1,6 +1,5 @@
 package edu.npu.config;
 
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -85,7 +85,7 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
         }
         //检查token是否存在
         String token = getTokenFromHeader(exchange);
-        if (StrUtil.isBlank(token)) {
+        if (StringUtils.hasText(token)) {
             return buildReturnMono("您需经认证方可访问", exchange);
         }
         String username = jwtTokenProvider.extractUsername(token);
@@ -118,11 +118,11 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
      */
     private String getTokenFromHeader(ServerWebExchange exchange) {
         String tokenStr = exchange.getRequest().getHeaders().getFirst("Authorization");
-        if (StrUtil.isBlank(tokenStr)) {
+        if (!StringUtils.hasText(tokenStr)) {
             return null;
         }
         String token = tokenStr.split(" ")[1];
-        if (StrUtil.isBlank(token)) {
+        if (!StringUtils.hasText(token)) {
             return null;
         }
         return token;

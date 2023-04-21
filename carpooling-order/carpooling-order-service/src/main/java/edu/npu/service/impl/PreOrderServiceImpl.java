@@ -4,19 +4,23 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import edu.npu.common.OrderStatusEnum;
 import edu.npu.common.ResponseCodeEnum;
+import edu.npu.dto.PassOrderDto;
 import edu.npu.entity.*;
 import edu.npu.feignClient.CarpoolingServiceClient;
-import edu.npu.feignClient.DriverServiceClient;
 import edu.npu.feignClient.UserServiceClient;
 import edu.npu.mapper.OrderMapper;
 import edu.npu.service.PreOrderService;
+import edu.npu.util.SendMailUtil;
 import edu.npu.vo.DriverOrderListItem;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author wangminan
@@ -29,10 +33,13 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         implements PreOrderService {
 
     @Resource
-    private UserServiceClient userServiceClient;
+    private SendMailUtil sendMailUtil;
+
+    // 线程池
+    private static final ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
 
     @Resource
-    private DriverServiceClient driverServiceClient;
+    private UserServiceClient userServiceClient;
 
     @Resource
     private CarpoolingServiceClient carpoolingServiceClient;
@@ -40,7 +47,7 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
     @Override
     public R passengerApply(Long carpoolingId, LoginAccount loginAccount) {
         User currentUser = userServiceClient
-                .getUserWithAccountUsername(loginAccount.getUsername());
+                .getUserByAccountUsername(loginAccount.getUsername());
         Order order = Order
                 .builder()
                 .carpoolingId(carpoolingId)
@@ -59,19 +66,8 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
 
     @Override
     public R driverGetConfirmList(Long carpoolingId, LoginAccount loginAccount) {
-        User currentUser = userServiceClient
-                .getUserWithAccountUsername(loginAccount.getUsername());
-        if (!currentUser.getIsDriver()) {
-            return R.error(ResponseCodeEnum.Forbidden, "该接口不允许非司机用户请求。");
-        }
-        // 需要校验行程ID是否是该司机的
-        Driver driver = driverServiceClient.getDriverWithAccountUsername(
-                loginAccount.getUsername()
-        );
-        Carpooling carpooling = carpoolingServiceClient.getCarpoolingById(carpoolingId);
-        if (!carpooling.getDriverId().equals(driver.getId())) {
-            return R.error(ResponseCodeEnum.Forbidden, "不允许访问不属于您的信息");
-        }
+        R forbidden = confirmForbidden(carpoolingId, loginAccount);
+        if (forbidden != null) return forbidden;
 
         // 提取请求
         List<Order> orders = this.list(
@@ -95,6 +91,69 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         Map<String, Object> result = new HashMap<>();
         result.put("list", list);
         return R.ok(result);
+    }
+
+    @Override
+    public R driverConfirm(PassOrderDto passOrderDto, LoginAccount loginAccount) {
+        // 预校验
+        R forbidden = confirmForbidden(passOrderDto.carpoolingId(), loginAccount);
+        if (forbidden != null) return forbidden;
+
+        // 更新表信息
+        Order order = getOne(
+                new LambdaQueryWrapper<Order>()
+                        .eq(Order::getCarpoolingId, passOrderDto.carpoolingId())
+                        .eq(Order::getPassengerId, passOrderDto.passengerId())
+        );
+        if (passOrderDto.pass()){
+            // 更新表
+            order.setStatus(OrderStatusEnum.PRE_ORDER_REQUEST_PASSED.getValue());
+        } else {
+            // 否则更新为强制结束
+            order.setStatus(OrderStatusEnum.ORDER_FORCE_CLOSED.getValue());
+        }
+        // 另起一个线程发送提醒邮件
+        cachedThreadPool.execute(() -> {
+            String email = userServiceClient
+                    .getUserById(passOrderDto.passengerId()).getEmail();
+            if (StringUtils.hasText(email)){
+                sendMailUtil.sendMail(
+                        email,
+                        "您的订单:" + passOrderDto.carpoolingId() + "拼车申请结果",
+                        passOrderDto.pass() ? "您的拼车申请已通过" : "您的拼车申请未通过"
+                );
+            }
+        });
+        boolean save = save(order);
+        if(!save){
+            log.error("司机确认乘客拼车申请失败，订单id：{}，乘客id：{}",
+                    passOrderDto.carpoolingId(), passOrderDto.passengerId());
+            return R.error("司机确认乘客拼车申请失败,MySQL数据库异常");
+        }
+        return R.ok("司机确认乘客拼车申请成功");
+    }
+
+    /**
+     * 司机接口预校验
+     * @param carpoolingId 拼车ID
+     * @param loginAccount 登录用户信息
+     * @return 校验未通过返回R.error 否则返回null
+     */
+    private R confirmForbidden(Long carpoolingId, LoginAccount loginAccount) {
+        User currentUser = userServiceClient
+                .getUserByAccountUsername(loginAccount.getUsername());
+        if (!currentUser.getIsDriver()) {
+            return R.error(ResponseCodeEnum.Forbidden, "该接口不允许非司机用户请求。");
+        }
+        // 需要校验行程ID是否是该司机的
+        Driver driver = userServiceClient.getDriverWithAccountUsername(
+                loginAccount.getUsername()
+        );
+        Carpooling carpooling = carpoolingServiceClient.getCarpoolingById(carpoolingId);
+        if (!carpooling.getDriverId().equals(driver.getId())) {
+            return R.error(ResponseCodeEnum.Forbidden, "不允许访问不属于您的信息");
+        }
+        return null;
     }
 }
 

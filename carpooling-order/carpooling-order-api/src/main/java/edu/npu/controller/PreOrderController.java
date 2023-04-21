@@ -1,6 +1,7 @@
 package edu.npu.controller;
 
 import edu.npu.dto.AddMessageDto;
+import edu.npu.dto.PassOrderDto;
 import edu.npu.entity.LoginAccount;
 import edu.npu.service.ChatService;
 import edu.npu.service.PreOrderService;
@@ -37,6 +38,7 @@ public class PreOrderController {
 
     /**
      * 乘客申请拼车
+     *
      * @param carpoolingId 拼车id
      * @param loginAccount 当前登录的用户账号
      * @return R
@@ -49,13 +51,20 @@ public class PreOrderController {
 
     /**
      * 司机审核并确认是否通过订单
+     *
      * @param carpoolingId 拼车行程唯一编号
      * @param loginAccount 当前登录的用户账号
      * @return 返回R
      */
     @GetMapping("/driver/apply/list")
-    public R driverConfirm(@RequestParam("carpoolingId") Long carpoolingId,
-                           @AuthenticationPrincipal LoginAccount loginAccount){
+    public R driverOrderList(@RequestParam("carpoolingId") Long carpoolingId,
+                             @AuthenticationPrincipal LoginAccount loginAccount) {
         return preOrderService.driverGetConfirmList(carpoolingId, loginAccount);
+    }
+
+    @PostMapping("/driver/apply/{carpoolingId}/{pass}")
+    public R driverConfirm(@RequestBody @Validated PassOrderDto passOrderDto,
+                           @AuthenticationPrincipal LoginAccount loginAccount) {
+        return preOrderService.driverConfirm(passOrderDto, loginAccount);
     }
 }

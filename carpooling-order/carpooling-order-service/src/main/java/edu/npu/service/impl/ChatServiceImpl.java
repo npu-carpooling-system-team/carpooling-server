@@ -45,7 +45,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
     @Override
     public R addMessage(AddMessageDto addMessageDto, LoginAccount loginAccount) {
         // 存到MySQL
-        Long fromUserId = userServiceClient.getUserWithAccountUsername(
+        Long fromUserId = userServiceClient.getUserByAccountUsername(
                 loginAccount.getUsername()
         ).getId();
         Long toUserId = addMessageDto.toUserId();
@@ -72,7 +72,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
     @Override
     public R getMessage(LoginAccount loginAccount) {
         List<MessageListItem> list = new ArrayList<>();
-        User currUser = userServiceClient.getUserWithAccountUsername(
+        User currUser = userServiceClient.getUserByAccountUsername(
                 loginAccount.getUsername()
         );
         // 检查chat表中的内容

@@ -75,7 +75,7 @@ public class UserController {
      * @param username 用户名
      * @return User
      */
-    @GetMapping("/getUser")
+    @GetMapping("/getUserByUsername")
     public User getUserWithAccountUsername(
             @RequestParam("username") String username
     ) {
@@ -84,9 +84,9 @@ public class UserController {
                         .eq(User::getUsername, username));
     }
 
-    @GetMapping("/getUser/{id}")
+    @GetMapping("/getUserById")
     public User getUserById(
-            @PathVariable("id") Long id
+            @RequestParam("id") Long id
     ) {
         return userService.getById(id);
     }

@@ -15,5 +15,5 @@ import org.springframework.web.bind.annotation.PathVariable;
         fallbackFactory = CarpoolingServiceClientFallbackFactory.class)
 public interface CarpoolingServiceClient {
     @GetMapping("/{id}")
-    Carpooling getCarpoolingById(@PathVariable Long id);
+    Carpooling getCarpoolingById(@PathVariable("id") Long id);
 }
