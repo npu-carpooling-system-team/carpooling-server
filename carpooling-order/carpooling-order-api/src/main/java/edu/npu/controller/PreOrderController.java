@@ -42,8 +42,20 @@ public class PreOrderController {
      * @return R
      */
     @PostMapping("/passenger/apply/{carpoolingId}")
-    public R passengerApply(@PathVariable("carpoolingId") Integer carpoolingId,
+    public R passengerApply(@PathVariable("carpoolingId") Long carpoolingId,
                             @AuthenticationPrincipal LoginAccount loginAccount) {
         return preOrderService.passengerApply(carpoolingId, loginAccount);
+    }
+
+    /**
+     * 司机审核并确认是否通过订单
+     * @param carpoolingId 拼车行程唯一编号
+     * @param loginAccount 当前登录的用户账号
+     * @return 返回R
+     */
+    @GetMapping("/driver/apply/list")
+    public R driverConfirm(@RequestParam("carpoolingId") Long carpoolingId,
+                           @AuthenticationPrincipal LoginAccount loginAccount){
+        return preOrderService.driverGetConfirmList(carpoolingId, loginAccount);
     }
 }

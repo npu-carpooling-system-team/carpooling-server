@@ -135,7 +135,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
                 hasNewMessage = true;
             }
             // 构建
-            User oppositeUser = userServiceClient.getUserWithId(
+            User oppositeUser = userServiceClient.getUserById(
                     fromUserId.equals(currUser.getId())
                             ? toUserId : fromUserId
             );

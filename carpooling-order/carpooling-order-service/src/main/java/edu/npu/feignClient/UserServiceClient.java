@@ -22,7 +22,7 @@ public interface UserServiceClient {
     );
 
     @GetMapping("/getUser/{id}")
-    User getUserWithId(
+    User getUserById(
             @PathVariable("id") Long id
     );
 }

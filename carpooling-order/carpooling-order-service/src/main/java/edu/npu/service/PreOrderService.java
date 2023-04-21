@@ -1,8 +1,8 @@
 package edu.npu.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import edu.npu.entity.LoginAccount;
 import edu.npu.entity.Order;
-import com.baomidou.mybatisplus.extension.service.IService;
 import edu.npu.vo.R;
 
 /**
@@ -13,5 +13,7 @@ import edu.npu.vo.R;
 */
 public interface PreOrderService extends IService<Order> {
 
-    R passengerApply(Integer carpoolingId, LoginAccount loginAccount);
+    R passengerApply(Long carpoolingId, LoginAccount loginAccount);
+
+    R driverGetConfirmList(Long carpoolingId, LoginAccount loginAccount);
 }

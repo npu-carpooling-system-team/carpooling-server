@@ -22,7 +22,7 @@ public class UserServiceClientFallbackFactory implements FallbackFactory<UserSer
             }
 
             @Override
-            public User getUserWithId(Long id) {
+            public User getUserById(Long id) {
                 log.error("远程调用user-api服务失败,原因:{}", cause.getMessage());
                 return null;
             }

@@ -19,11 +19,13 @@ public class Driver implements Serializable {
      * 司机身份唯一标识符
      */
     @TableId(type = IdType.AUTO)
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long id;
 
     /**
      * 与user表中id一致
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long driverId;
 
     /**

@@ -1,5 +1,6 @@
 package edu.npu.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
 /**
@@ -8,6 +9,7 @@ import lombok.Builder;
  */
 @Builder
 public record ToUserVo(
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         Long id,
         String username,
         String avatar

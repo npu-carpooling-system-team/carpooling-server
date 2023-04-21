@@ -8,6 +8,7 @@ import java.util.Date;
 public record GetCarpoolingDto(
 
     @NotNull
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     Long id,
     @NotNull
     String arrivePoint,

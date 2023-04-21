@@ -1,7 +1,7 @@
 package edu.npu.mapper;
 
-import edu.npu.entity.UnfinishedOrder;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import edu.npu.entity.UnfinishedOrder;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

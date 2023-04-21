@@ -20,8 +20,10 @@ import java.util.Date;
 @AllArgsConstructor
 public class CarpoolingDoc {
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long id;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long driverId;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
