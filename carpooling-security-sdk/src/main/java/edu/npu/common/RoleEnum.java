@@ -11,11 +11,11 @@ import lombok.Getter;
 public enum RoleEnum {
 
     @JsonProperty("User")
-    User(0),
+    USER(0),
 
 
     @JsonProperty("Admin")
-    Admin(1);
+    ADMIN(1);
 
     RoleEnum(int value) {
         this.value = value;

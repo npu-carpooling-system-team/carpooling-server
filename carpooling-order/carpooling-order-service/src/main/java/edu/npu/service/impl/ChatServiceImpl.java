@@ -11,11 +11,11 @@ import edu.npu.entity.Chat;
 import edu.npu.entity.LoginAccount;
 import edu.npu.entity.User;
 import edu.npu.feignClient.UserServiceClient;
-import edu.npu.service.ChatService;
 import edu.npu.mapper.ChatMapper;
-import edu.npu.vo.ToUserVo;
+import edu.npu.service.ChatService;
 import edu.npu.vo.MessageListItem;
 import edu.npu.vo.R;
+import edu.npu.vo.ToUserVo;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -115,9 +115,9 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
             boolean hasNewMessage = false;
             // 从Redis中删除通知信息
             if (Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(
-                            RedisConstants.MESSAGE_NOTICE_KEY + currUser.getId(),
-                            fromUserId.toString()
-                    ))){
+                    RedisConstants.MESSAGE_NOTICE_KEY + currUser.getId(),
+                    fromUserId.toString()
+            ))) {
 
                 stringRedisTemplate.opsForSet().remove(
                         RedisConstants.MESSAGE_NOTICE_KEY + currUser.getId(),
@@ -125,9 +125,9 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
                 );
                 hasNewMessage = true;
             } else if (Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(
-                            RedisConstants.MESSAGE_NOTICE_KEY + currUser.getId(),
-                            toUserId.toString()
-                    ))){
+                    RedisConstants.MESSAGE_NOTICE_KEY + currUser.getId(),
+                    toUserId.toString()
+            ))) {
                 stringRedisTemplate.opsForSet().remove(
                         RedisConstants.MESSAGE_NOTICE_KEY + currUser.getId(),
                         toUserId.toString()
@@ -162,7 +162,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
      *
      * @param shardIndex 分片索引
      * @param shardTotal 分片总数
-     * @param count 一次任务删除的数量
+     * @param count      一次任务删除的数量
      * @return 是否删除成功
      */
     @Override
@@ -172,17 +172,17 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         List<Chat> chats = chatMapper.selectListByShardIndex(shardIndex, shardTotal, count);
         // 遍历 判断时间与是否已读(redis) 若已读且过期则删除
         Date now = new Date();
-        for (Chat chat : chats){
+        for (Chat chat : chats) {
             // 判断是否已读 如果存在键值对则说明未读 跳过
             if (Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(
                     RedisConstants.MESSAGE_NOTICE_KEY + chat.getToUserId(),
                     chat.getFromUserId().toString()
-            ))){
+            ))) {
                 continue;
             }
             // 判断是否过期 使用DateUtil
             if (chat.getSendTime().before(
-                    DateUtil.offset(now, DateField.DAY_OF_YEAR, -7))){
+                    DateUtil.offset(now, DateField.DAY_OF_YEAR, -7))) {
                 chatMapper.deleteById(chat.getId());
             }
         }

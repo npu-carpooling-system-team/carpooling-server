@@ -105,7 +105,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
         loginAccount.setPassword(
                 passwordEncoder.encode(
                         RsaUtil.decrypt(privateKey, userRegisterDto.password())));
-        loginAccount.setRole(RoleEnum.User.getValue());
+        loginAccount.setRole(RoleEnum.USER.getValue());
         boolean saveLoginAccount = this.save(loginAccount);
         if (!saveLoginAccount){
             return R.error(ResponseCodeEnum.ServerError, "注册失败,请检查用户名是否重复");
@@ -271,14 +271,14 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
                 TimeUnit.MILLISECONDS);
         // 组织返回结果
         Map<String, Object> result = new HashMap<>();
-        if(loginAccount.getRole() == RoleEnum.User.getValue()){
+        if(loginAccount.getRole() == RoleEnum.USER.getValue()){
             // 需要去查user表 拿到id
             User user = userMapper.selectOne(
                     new QueryWrapper<User>().lambda()
                             .eq(User::getUsername, username));
             result.put("id", user.getId());
             result.put("role", 0);
-        } else if(loginAccount.getRole() == RoleEnum.Admin.getValue()){
+        } else if(loginAccount.getRole() == RoleEnum.ADMIN.getValue()){
             result.put("role", 1);
         }
         result.put("token", token);

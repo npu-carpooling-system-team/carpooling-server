@@ -3,6 +3,7 @@ package edu.npu.controller;
 import edu.npu.dto.AddMessageDto;
 import edu.npu.entity.LoginAccount;
 import edu.npu.service.ChatService;
+import edu.npu.service.PreOrderService;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,6 +21,9 @@ public class PreOrderController {
     @Resource
     private ChatService chatService;
 
+    @Resource
+    private PreOrderService preOrderService;
+
     @PostMapping("/message")
     public R leaveMessage(@RequestBody @Validated AddMessageDto addMessageDto,
                           @AuthenticationPrincipal LoginAccount loginAccount) {
@@ -29,5 +33,17 @@ public class PreOrderController {
     @GetMapping("/message")
     public R getMessage(@AuthenticationPrincipal LoginAccount loginAccount) {
         return chatService.getMessage(loginAccount);
+    }
+
+    /**
+     * 乘客申请拼车
+     * @param carpoolingId 拼车id
+     * @param loginAccount 当前登录的用户账号
+     * @return R
+     */
+    @PostMapping("/passenger/apply/{carpoolingId}")
+    public R passengerApply(@PathVariable("carpoolingId") Integer carpoolingId,
+                            @AuthenticationPrincipal LoginAccount loginAccount) {
+        return preOrderService.passengerApply(carpoolingId, loginAccount);
     }
 }
