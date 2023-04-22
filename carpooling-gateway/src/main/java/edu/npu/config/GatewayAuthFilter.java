@@ -85,7 +85,7 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
         }
         //检查token是否存在
         String token = getTokenFromHeader(exchange);
-        if (StringUtils.hasText(token)) {
+        if (!StringUtils.hasText(token)) {
             return buildReturnMono("您需经认证方可访问", exchange);
         }
         String username = jwtTokenProvider.extractUsername(token);

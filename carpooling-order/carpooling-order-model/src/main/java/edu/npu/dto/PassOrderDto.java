@@ -10,10 +10,7 @@ import jakarta.validation.constraints.NotNull;
 public record PassOrderDto(
         @NotNull
         @JsonFormat(shape = JsonFormat.Shape.STRING)
-        Long carpoolingId,
-        @NotNull
-        @JsonFormat(shape = JsonFormat.Shape.STRING)
-        Long passengerId,
+        Long orderId,
         @NotNull
         Boolean pass
 

@@ -18,7 +18,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -44,18 +47,17 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
     @Resource
     private CarpoolingServiceClient carpoolingServiceClient;
 
+    @Resource
+    private OrderMapper orderMapper;
+
     @Override
     public R passengerApply(Long carpoolingId, LoginAccount loginAccount) {
         User currentUser = userServiceClient
                 .getUserByAccountUsername(loginAccount.getUsername());
-        Order order = Order
-                .builder()
-                .carpoolingId(carpoolingId)
-                .passengerId(currentUser.getId())
-                .status(OrderStatusEnum.PRE_ORDER_REQUEST_SUBMITTED.getValue())
-                .createTime(new Date())
-                .build();
-        boolean saveOrder = save(order);
+        // mybatisplus的save方法在抽风 我自己写一个
+        boolean saveOrder =
+                orderMapper.save(carpoolingId, currentUser.getId(),
+                        OrderStatusEnum.PRE_ORDER_REQUEST_SUBMITTED.getValue());
         if (!saveOrder) {
             log.error("乘客申请拼车失败，乘客id：{}，拼车id：{}",
                     currentUser.getId(), carpoolingId);
@@ -95,17 +97,9 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
 
     @Override
     public R driverConfirm(PassOrderDto passOrderDto, LoginAccount loginAccount) {
-        // 预校验
-        R forbidden = confirmForbidden(passOrderDto.carpoolingId(), loginAccount);
-        if (forbidden != null) return forbidden;
-
         // 更新表信息
-        Order order = getOne(
-                new LambdaQueryWrapper<Order>()
-                        .eq(Order::getCarpoolingId, passOrderDto.carpoolingId())
-                        .eq(Order::getPassengerId, passOrderDto.passengerId())
-        );
-        if (passOrderDto.pass()){
+        Order order = getById(passOrderDto.orderId());
+        if (passOrderDto.pass()) {
             // 更新表
             order.setStatus(OrderStatusEnum.PRE_ORDER_REQUEST_PASSED.getValue());
         } else {
@@ -115,19 +109,19 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         // 另起一个线程发送提醒邮件
         cachedThreadPool.execute(() -> {
             String email = userServiceClient
-                    .getUserById(passOrderDto.passengerId()).getEmail();
-            if (StringUtils.hasText(email)){
+                    .getUserById(order.getPassengerId()).getEmail();
+            if (StringUtils.hasText(email)) {
                 sendMailUtil.sendMail(
                         email,
-                        "您的订单:" + passOrderDto.carpoolingId() + "拼车申请结果",
+                        "您的订单:" + passOrderDto.orderId() + "拼车申请结果",
                         passOrderDto.pass() ? "您的拼车申请已通过" : "您的拼车申请未通过"
                 );
             }
         });
-        boolean save = save(order);
-        if(!save){
+        boolean save = updateById(order);
+        if (!save) {
             log.error("司机确认乘客拼车申请失败，订单id：{}，乘客id：{}",
-                    passOrderDto.carpoolingId(), passOrderDto.passengerId());
+                    passOrderDto.orderId(), order.getPassengerId());
             return R.error("司机确认乘客拼车申请失败,MySQL数据库异常");
         }
         return R.ok("司机确认乘客拼车申请成功");
@@ -135,6 +129,7 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
 
     /**
      * 司机接口预校验
+     *
      * @param carpoolingId 拼车ID
      * @param loginAccount 登录用户信息
      * @return 校验未通过返回R.error 否则返回null

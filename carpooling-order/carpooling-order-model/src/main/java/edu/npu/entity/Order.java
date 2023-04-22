@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -14,9 +15,11 @@ import java.util.Date;
 
 /**
  * 拼车订单表
+ *
  * @TableName order
+ * 注意 order是MySQL保留字 所以在tableName上要加上反引号
  */
-@TableName(value ="order")
+@TableName(value = "`order`")
 @Data
 @Builder
 public class Order implements Serializable {
@@ -48,12 +51,15 @@ public class Order implements Serializable {
      *
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    // 写入数据库时格式化
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     /**
      * 订单状态更新时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
     /**

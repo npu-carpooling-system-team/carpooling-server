@@ -62,7 +62,7 @@ public class PreOrderController {
         return preOrderService.driverGetConfirmList(carpoolingId, loginAccount);
     }
 
-    @PostMapping("/driver/apply/{carpoolingId}/{pass}")
+    @PostMapping("/driver/apply/confirm")
     public R driverConfirm(@RequestBody @Validated PassOrderDto passOrderDto,
                            @AuthenticationPrincipal LoginAccount loginAccount) {
         return preOrderService.driverConfirm(passOrderDto, loginAccount);
