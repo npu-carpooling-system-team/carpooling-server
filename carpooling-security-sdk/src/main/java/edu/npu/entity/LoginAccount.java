@@ -1,6 +1,8 @@
 package edu.npu.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.npu.common.RoleEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.IOException;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
@@ -19,15 +22,17 @@ import java.util.Objects;
  * 用于用户名密码登录所需表格
  * @TableName login_account
  */
-@TableName(value ="login_account")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(
+        value = {"accountNonExpired", "accountNonLocked",
+                "credentialsNonExpired", "enabled", "authorities"})
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class LoginAccount implements Serializable, UserDetails {
     /**
      * 用户登录时唯一编号
      */
-    @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
@@ -48,11 +53,9 @@ public class LoginAccount implements Serializable, UserDetails {
     /**
      * 逻辑删除字段,0未删除,1已删除
      */
-    @TableLogic(value = "0", delval = "1")
     private Integer isDeleted;
 
     @Serial
-    @TableField(exist = false)
     private static final long serialVersionUID = 184688L;
 
     @Override
@@ -79,5 +82,14 @@ public class LoginAccount implements Serializable, UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public LoginAccount(String json) throws IOException {
+        LoginAccount loginAccount = new ObjectMapper().readValue(json, LoginAccount.class);
+        this.id = loginAccount.getId();
+        this.username = loginAccount.getUsername();
+        this.password = loginAccount.getPassword();
+        this.role = loginAccount.getRole();
+        this.isDeleted = loginAccount.getIsDeleted();
     }
 }

@@ -22,4 +22,7 @@ spring:
           - data-id: alipay-config-${spring.profiles.active}.properties
             group: carpooling-system
             refresh: true
+          - data-id: redis-config-${spring.profiles.active}.yaml
+            group: carpooling-system
+            refresh: true
 

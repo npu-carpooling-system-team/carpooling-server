@@ -1,10 +1,8 @@
 package edu.npu.config;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.npu.entity.LoginAccount;
-import edu.npu.service.LoginAccountService;
 import edu.npu.util.JwtTokenProvider;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -25,12 +23,10 @@ import reactor.core.publisher.Mono;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
-import static edu.npu.common.RedisConstants.TOKEN_KEY_PREFIX;
+import static edu.npu.common.RedisConstants.*;
 
 /**
  * @author : [wangminan]
@@ -47,9 +43,6 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
     private JwtTokenProvider jwtTokenProvider;
 
     @Resource
-    private LoginAccountService loginAccountService;
-
-    @Resource
     @Lazy
     private ObjectMapper objectMapper;
 
@@ -60,7 +53,8 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
         //加载白名单
         try (
                 InputStream resourceAsStream =
-                        GatewayAuthFilter.class.getResourceAsStream("/security-whitelist.properties");
+                        GatewayAuthFilter.class
+                                .getResourceAsStream("/security-whitelist.properties");
         ) {
             Properties properties = new Properties();
             properties.load(resourceAsStream);
@@ -89,19 +83,31 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
             return buildReturnMono("您需经认证方可访问", exchange);
         }
         String username = jwtTokenProvider.extractUsername(token);
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (username != null &&
+                SecurityContextHolder.getContext().getAuthentication() == null) {
             // 从Redis中获取user信息
-            String cachedToken = stringRedisTemplate.opsForValue().get(TOKEN_KEY_PREFIX + username);
-            if (cachedToken == null || !cachedToken.equals(token)) {
+            Map<Object, Object> cachedUser = stringRedisTemplate
+                    .opsForHash()
+                    .entries(TOKEN_KEY_PREFIX + username);
+            if (cachedUser.isEmpty() || cachedUser.get(HASH_TOKEN_KEY) == null
+                    || !cachedUser.get(HASH_TOKEN_KEY).equals(token)) {
                 return buildReturnMono("认证令牌无效", exchange);
             }
-            // 查数据库获取用户
-            LoginAccount loginAccount = loginAccountService.getOne(
-                    new QueryWrapper<LoginAccount>().lambda()
-                            .eq(LoginAccount::getUsername, username)
-            );
+            // 查map获取用户
+            LoginAccount loginAccount =
+                    cachedUser.get(HASH_LOGIN_ACCOUNT_KEY) == null ? null :
+                    objectMapper.convertValue(
+                            cachedUser.get(HASH_LOGIN_ACCOUNT_KEY),
+                            LoginAccount.class);
+            if (loginAccount == null) {
+                return buildReturnMono("认证令牌无效", exchange);
+            }
             // 校验令牌合法性 是否过期
             if (jwtTokenProvider.isTokenValid(token, loginAccount)) {
+                // 重新设置过期时间
+                stringRedisTemplate
+                        .expire(TOKEN_KEY_PREFIX + username,
+                                TOKEN_EXPIRE_TTL, TimeUnit.MILLISECONDS);
                 return chain.filter(exchange);
             }
         }

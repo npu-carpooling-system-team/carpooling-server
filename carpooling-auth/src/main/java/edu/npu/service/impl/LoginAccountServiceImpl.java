@@ -8,6 +8,8 @@ import com.alipay.api.response.AlipaySystemOauthTokenResponse;
 import com.alipay.api.response.AlipayUserInfoShareResponse;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.npu.common.RedisConstants;
 import edu.npu.common.ResponseCodeEnum;
 import edu.npu.common.RoleEnum;
@@ -18,6 +20,7 @@ import edu.npu.dto.UserRegisterDto;
 import edu.npu.entity.Driver;
 import edu.npu.entity.LoginAccount;
 import edu.npu.entity.User;
+import edu.npu.exception.CarpoolingException;
 import edu.npu.mapper.DriverMapper;
 import edu.npu.mapper.LoginAccountMapper;
 import edu.npu.mapper.UserMapper;
@@ -44,6 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import static edu.npu.common.RedisConstants.*;
 
 /**
 * @author wangminan
@@ -78,6 +83,9 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
 
     @Resource
     private AlipayClient alipayClient;
+
+    @Resource
+    private ObjectMapper objectMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -263,12 +271,22 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
 
     private Map<String, Object> genTokenWithLoginAccount(String username, LoginAccount loginAccount) {
         String token = jwtTokenProvider.generateToken(loginAccount);
-        // token放入redis
-        stringRedisTemplate.opsForValue().set(
-                RedisConstants.TOKEN_KEY_PREFIX + username,
-                token,
-                RedisConstants.TOKEN_EXPIRE_TTL,
-                TimeUnit.MILLISECONDS);
+        // token放入redis 用一个hash结构存储token和loginAccount的json字符串形式
+        try {
+            stringRedisTemplate.opsForHash().put(
+                    RedisConstants.TOKEN_KEY_PREFIX + username,
+                    HASH_TOKEN_KEY, token);
+            stringRedisTemplate.opsForHash().put(
+                    RedisConstants.TOKEN_KEY_PREFIX + username,
+                    HASH_LOGIN_ACCOUNT_KEY, objectMapper.writeValueAsString(loginAccount));
+            // 设置过期时间TOKEN_EXPIRE_TTL
+            stringRedisTemplate.expire(
+                    RedisConstants.TOKEN_KEY_PREFIX + username,
+                    TOKEN_EXPIRE_TTL,
+                    TimeUnit.MILLISECONDS);
+        } catch (JsonProcessingException e) {
+            CarpoolingException.cast("loginAccount序列化失败");
+        }
         // 组织返回结果
         Map<String, Object> result = new HashMap<>();
         if(loginAccount.getRole() == RoleEnum.USER.getValue()){

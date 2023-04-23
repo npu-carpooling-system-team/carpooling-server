@@ -114,7 +114,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             log.error("用户不存在");
             return R.error(ResponseCodeEnum.NotFound, "用户不存在");
         }
-        Driver driver = new Driver();
+        Driver driver = null;
         if (user.getIsDriver()) {
             driver = driverMapper.selectOne(
                     new QueryWrapper<Driver>()
