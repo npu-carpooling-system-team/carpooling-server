@@ -2,6 +2,7 @@ package edu.npu.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.io.Serial;
@@ -14,6 +15,7 @@ import java.util.Date;
  */
 @TableName(value ="driver")
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Driver implements Serializable {
     /**
      * 司机身份唯一标识符
