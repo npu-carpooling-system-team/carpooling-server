@@ -36,10 +36,10 @@ public class PreDepartureOrderServiceImpl extends ServiceImpl<OrderMapper, Order
         implements PreDepartureOrderService {
 
     @Resource
-    OrderMapper orderMapper;
+    private OrderMapper orderMapper;
 
     @Resource
-    UnfinishedOrderMapper unfinishedOrderMapper;
+    private UnfinishedOrderMapper unfinishedOrderMapper;
 
     @Resource
     private UserServiceClient userServiceClient;
@@ -75,12 +75,12 @@ public class PreDepartureOrderServiceImpl extends ServiceImpl<OrderMapper, Order
                 if (1 == insertSuccess) {
                     return R.ok("用户半年内取消订单超过3次，强制支付");
                 } else {
-                    log.error("用户取消订单失败，订单id：{" + orderId + "}");
-                    return R.error("用户取消订单失败，MySQL数据库异常");
+                    log.error("用户取消订单失败，表unfinished_order插入失败,订单id：{" + orderId + "}");
+                    return R.error("用户取消订单失败，表unfinished_order插入失败");
                 }
             } else {
-                log.error("用户取消订单失败，订单id：{" + orderId + "}");
-                return R.error("用户取消订单失败，MySQL数据库异常");
+                log.error("用户取消订单失败，表order更新失败,订单id：{" + orderId + "}");
+                return R.error("用户取消订单失败，表order更新失败");
             }
         }
         order.setStatus(OrderStatusEnum.PRE_DEPARTURE_USER_CANCELLED.getValue());
@@ -89,8 +89,8 @@ public class PreDepartureOrderServiceImpl extends ServiceImpl<OrderMapper, Order
         if (updateSuccess) {
             return R.ok("用户取消订单成功");
         } else {
-            log.error("用户取消订单失败，订单id：{" + orderId + "}");
-            return R.error("用户取消订单失败，MySQL数据库异常");
+            log.error("用户取消订单失败，表order更新失败,订单id：{" + orderId + "}");
+            return R.error("用户取消订单失败，表order更新失败");
         }
 
     }
