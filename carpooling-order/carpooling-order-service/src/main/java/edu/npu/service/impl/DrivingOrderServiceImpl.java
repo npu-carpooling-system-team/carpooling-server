@@ -1,6 +1,7 @@
 package edu.npu.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import edu.npu.common.OrderStatusEnum;
 import edu.npu.entity.LoginAccount;
 import edu.npu.entity.Order;
 import edu.npu.entity.User;
@@ -10,7 +11,6 @@ import edu.npu.service.DrivingOrderService;
 import edu.npu.vo.R;
 import groovy.util.logging.Slf4j;
 import jakarta.annotation.Resource;
-import edu.npu.common.OrderStatusEnum;
 import org.springframework.stereotype.Service;
 
 /**

@@ -1,9 +1,7 @@
 package edu.npu.service.impl;
 
-import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import edu.npu.common.OrderStatusEnum;
-import edu.npu.common.ResponseCodeEnum;
 import edu.npu.entity.Carpooling;
 import edu.npu.entity.Driver;
 import edu.npu.entity.Order;
@@ -13,7 +11,7 @@ import edu.npu.exception.CarpoolingException;
 import edu.npu.feignClient.CarpoolingServiceClient;
 import edu.npu.feignClient.UserServiceClient;
 import edu.npu.mapper.OrderMapper;
-import edu.npu.service.AdminService;
+import edu.npu.service.AdminGeneralService;
 import edu.npu.util.OssUtil;
 import edu.npu.vo.PrizeVo;
 import edu.npu.vo.R;
@@ -22,8 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -31,7 +27,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author : [wangminan]
@@ -39,7 +36,7 @@ import java.util.*;
  */
 @Service
 @Slf4j
-public class AdminServiceImpl implements AdminService {
+public class AdminGeneralServiceImpl implements AdminGeneralService {
 
     @Resource
     private OssUtil ossUtil;
@@ -99,7 +96,7 @@ public class AdminServiceImpl implements AdminService {
             sheet.getRow(0).createCell(8).setCellValue("订单金额");
             sheet.getRow(0).createCell(9).setCellValue("订单用户评分");
             // 开始插入数据
-            for (Order tmpOrder : orders){
+            for (Order tmpOrder : orders) {
                 // 获取当前行
                 int lastRowNum = sheet.getLastRowNum();
                 // 创建行
@@ -136,9 +133,9 @@ public class AdminServiceImpl implements AdminService {
     public R genPrizeList(Date begin, Date end) {
         List<PrizeVo> prizes = orderMapper.selectPrizeList(begin, end);
         // 写入EXCEL
-        try(
-            // 创建workbook SXSSFWorkbook默认100行缓存
-            Workbook workbook = new SXSSFWorkbook()
+        try (
+                // 创建workbook SXSSFWorkbook默认100行缓存
+                Workbook workbook = new SXSSFWorkbook()
         ) {
             // 创建Sheet
             Sheet sheet = workbook.createSheet("嘉奖列表");
@@ -155,7 +152,7 @@ public class AdminServiceImpl implements AdminService {
             );
             int rank = 0;
             // 开始插入数据
-            for (PrizeVo prize : prizes){
+            for (PrizeVo prize : prizes) {
                 // 获取当前行
                 int lastRowNum = sheet.getLastRowNum();
                 // 创建行
@@ -179,15 +176,15 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    private String uploadFileToOss(Workbook workbook, File file){
-        try(
+    private String uploadFileToOss(Workbook workbook, File file) {
+        try (
                 FileOutputStream fileOutputStream = new FileOutputStream(file)
-        ){
+        ) {
             // 保存到OSS 参数为一个File
             workbook.write(fileOutputStream);
             // 上传到OSS
             String url = ossUtil.uploadFile(file);
-            if (StringUtils.hasText(url)){
+            if (StringUtils.hasText(url)) {
                 // 上传成功
                 log.info("上传到OSS成功,file:{}", file.getName());
                 // 删除临时文件
@@ -199,7 +196,6 @@ public class AdminServiceImpl implements AdminService {
             }
         } catch (IOException e) {
             log.error("上传到OSS失败,file:{}", file.getName());
-            e.printStackTrace();
             CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR, "上传到OSS失败");
         }
         return null;

@@ -40,7 +40,7 @@ public class OssUtil {
             return endPoint + "/" + bucketName + "/" + baseDir + file.getName();
         } catch (OSSException e){
             log.error("文件:{}上传失败",file.getName());
-            e.printStackTrace();
+            
         }
         return null;
     }
@@ -56,7 +56,7 @@ public class OssUtil {
             return true;
         } catch (OSSException e){
             log.error("文件:{}删除失败",fileName);
-            e.printStackTrace();
+            
         }
         return false;
     }

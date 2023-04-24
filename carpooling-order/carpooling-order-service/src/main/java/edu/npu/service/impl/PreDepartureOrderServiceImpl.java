@@ -7,7 +7,6 @@ import edu.npu.entity.LoginAccount;
 import edu.npu.entity.Order;
 import edu.npu.entity.UnfinishedOrder;
 import edu.npu.entity.User;
-import edu.npu.exception.CarpoolingError;
 import edu.npu.exception.CarpoolingException;
 import edu.npu.feignClient.UserServiceClient;
 import edu.npu.mapper.OrderMapper;
@@ -16,7 +15,6 @@ import edu.npu.service.PreDepartureOrderService;
 import edu.npu.vo.R;
 import groovy.util.logging.Slf4j;
 import jakarta.annotation.Resource;
-import org.apache.ibatis.javassist.Loader;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;

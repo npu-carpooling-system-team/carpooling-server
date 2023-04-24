@@ -49,7 +49,7 @@ public class EsService {
             jsonDoc = objectMapper.writeValueAsString(carpoolingDoc);
         } catch (JsonProcessingException e) {
             log.error("carpooling对象:{}无法转换为json字符串", carpooling);
-            e.printStackTrace();
+            
             CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
                     "carpooling对象无法转换为json字符串");
         }
@@ -95,7 +95,7 @@ public class EsService {
             jsonDoc = objectMapper.writeValueAsString(carpoolingDoc);
         } catch (JsonProcessingException e) {
             log.error("carpooling对象:{}无法转换为json字符串", carpooling);
-            e.printStackTrace();
+            
             CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
                     "修改拼车行程失败,ES出错");
         }

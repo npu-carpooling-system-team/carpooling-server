@@ -1,10 +1,8 @@
 package edu.npu.controller;
 
-import edu.npu.common.ResponseCodeEnum;
-import edu.npu.entity.Carpooling;
 import edu.npu.exception.CarpoolingError;
 import edu.npu.exception.CarpoolingException;
-import edu.npu.service.AdminService;
+import edu.npu.service.AdminGeneralService;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +21,10 @@ import java.util.Date;
  */
 @RestController("/admin")
 @Slf4j
-public class AdminController {
+public class AdminGeneralController {
 
     @Resource
-    private AdminService adminService;
+    private AdminGeneralService adminGeneralService;
 
     private static final Long FINAL_DATE = 4102415999000L;
 
@@ -38,7 +36,7 @@ public class AdminController {
             @RequestParam(value = "endTime", required = false) String endTime,
             @RequestParam(value = "driverId", required = false) Long driverId) {
         formatDate(beginTime, endTime);
-        return adminService.genOrderList(begin, end, driverId);
+        return adminGeneralService.genOrderList(begin, end, driverId);
     }
 
     @GetMapping("/prize/list")
@@ -46,7 +44,7 @@ public class AdminController {
             @RequestParam(value = "beginTime", required = false) String beginTime,
             @RequestParam(value = "endTime", required = false) String endTime) {
         formatDate(beginTime, endTime);
-        return adminService.genPrizeList(begin, end);
+        return adminGeneralService.genPrizeList(begin, end);
     }
 
     private void formatDate(String beginTime, String endTime){
@@ -66,7 +64,7 @@ public class AdminController {
             }
         } catch (ParseException e) {
             log.error("日期转换错误");
-            e.printStackTrace();
+
             CarpoolingException.cast(
                     CarpoolingError.PARAMS_ERROR, "您给出的日期无法被正确转换");
         }

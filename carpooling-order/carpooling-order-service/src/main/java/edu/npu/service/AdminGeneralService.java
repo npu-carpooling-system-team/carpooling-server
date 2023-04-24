@@ -4,7 +4,7 @@ import edu.npu.vo.R;
 
 import java.util.Date;
 
-public interface AdminService{
+public interface AdminGeneralService {
 
     /**
      * 生成订单列表到OSS

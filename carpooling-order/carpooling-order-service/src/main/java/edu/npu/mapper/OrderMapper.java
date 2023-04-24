@@ -6,7 +6,6 @@ import edu.npu.vo.PrizeVo;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.security.core.parameters.P;
 
 import java.util.Date;
 import java.util.List;

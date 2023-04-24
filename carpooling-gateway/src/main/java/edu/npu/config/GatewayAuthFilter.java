@@ -62,7 +62,7 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
             whitelist = new ArrayList<>(strings);
         } catch (Exception e) {
             log.error("加载/security-whitelist.properties出错:{}", e.getMessage());
-            e.printStackTrace();
+            
         }
     }
 
