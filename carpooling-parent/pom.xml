@@ -20,6 +20,7 @@
         <module>../carpooling-security-sdk</module>
         <module>../carpooling-carpooling</module>
         <module>../carpooling-order</module>
+        <module>../carpooling-payment</module>
     </modules>
 
     <profiles>
