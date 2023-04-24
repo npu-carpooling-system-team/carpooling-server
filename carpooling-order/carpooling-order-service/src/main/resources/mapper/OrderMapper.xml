@@ -19,4 +19,27 @@
         status,create_time,update_time,
         score
     </sql>
+
+    <select id="selectPrizeList" resultType="edu.npu.vo.PrizeVo">
+        SELECT
+            COUNT(o.id) as totalOrders,
+            d.driver_id as driverId,
+            d.drivers_name as driversName,
+            u.username as driverPhone
+        FROM
+            `order` o
+            join carpooling c on o.carpooling_id = c.id
+            join driver d on c.driver_id = d.driver_id
+            join user u on u.id = d.driver_id
+        WHERE
+            o.status = 0
+        AND
+            o.create_time &gt;= #{begin,jdbcType=TIMESTAMP}
+        AND
+            o.update_time &lt;= #{end,jdbcType=TIMESTAMP}
+        GROUP BY
+            d.driver_id
+        ORDER BY
+            count(o.id) DESC
+    </select>
 </mapper>

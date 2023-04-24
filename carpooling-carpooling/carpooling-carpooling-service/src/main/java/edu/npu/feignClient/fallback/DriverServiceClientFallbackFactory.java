@@ -20,7 +20,7 @@ public class DriverServiceClientFallbackFactory implements FallbackFactory<Drive
         // 有多个方法的时候就不能Lambda表达式了 得用匿名内部类一个一个处理
         return new DriverServiceClient() {
             @Override
-            public Driver getDriverWithAccountUsername(String username) {
+            public Driver getDriverByAccountUsername(String username) {
                 log.error("feignClient熔断器触发，原因：{}", cause.getMessage());
                 return new Driver();
             }

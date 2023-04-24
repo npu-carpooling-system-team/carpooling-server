@@ -17,7 +17,7 @@ import java.util.List;
         fallbackFactory = DriverServiceClientFallbackFactory.class)
 public interface DriverServiceClient {
     @GetMapping("/getDriver")
-    Driver getDriverWithAccountUsername(
+    Driver getDriverByAccountUsername(
             @RequestParam("username") String username
     );
 

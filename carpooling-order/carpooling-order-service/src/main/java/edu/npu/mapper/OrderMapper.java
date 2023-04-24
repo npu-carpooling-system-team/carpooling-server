@@ -2,9 +2,14 @@ package edu.npu.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import edu.npu.entity.Order;
+import edu.npu.vo.PrizeVo;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.security.core.parameters.P;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author wangminan
@@ -30,6 +35,9 @@ public interface OrderMapper extends BaseMapper<Order> {
     boolean save(@Param("carpoolingId") long carpoolingId,
                  @Param("passengerId") long passengerId,
                  @Param("status") int status);
+
+    List<PrizeVo> selectPrizeList(@Param("begin")Date begin,
+                                  @Param("end") Date end);
 }
 
 

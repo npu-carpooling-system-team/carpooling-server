@@ -38,5 +38,4 @@ public class CarpoolingException extends RuntimeException{
     public static void cast(CarpoolingError commonError, String errMessage){
         throw new CarpoolingException(commonError.getErrMessage() + " " +  errMessage);
     }
-
 }

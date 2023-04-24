@@ -71,7 +71,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     @Transactional(rollbackFor = Exception.class)
     public R addCarpooling(AddCarpoolingDto addCarpoolingDto, LoginAccount loginAccount) {
         // 从loginAccount中获取driverId addCarpoolingDto中获取其他信息
-        Driver driver = driverServiceClient.getDriverWithAccountUsername(
+        Driver driver = driverServiceClient.getDriverByAccountUsername(
                 loginAccount.getUsername()
         );
         Carpooling carpooling = new Carpooling();
@@ -111,7 +111,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         }
         // 需要同时修改MySQL和ElasticSearch
         // 从loginAccount中获取driverId addCarpoolingDto中获取其他信息
-        Driver driver = driverServiceClient.getDriverWithAccountUsername(
+        Driver driver = driverServiceClient.getDriverByAccountUsername(
                 loginAccount.getUsername()
         );
         if (driver.getDriversLicenseType().startsWith("C") &&
@@ -150,7 +150,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     @Transactional(rollbackFor = Exception.class)
     public R deleteCarpooling(Long id, LoginAccount loginAccount) {
         // 校验一致性
-        Driver driver = driverServiceClient.getDriverWithAccountUsername(
+        Driver driver = driverServiceClient.getDriverByAccountUsername(
                 loginAccount.getUsername()
         );
         Carpooling carpooling = getById(id);
@@ -184,7 +184,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     @Override
     public R getCarpooling(PageQueryDto pageQueryDto, LoginAccount loginAccount) {
         // 需要从ES中检索数据 同时注意分页 我们这种数据量较小的情况可以使用from-size方式
-        Driver driver = driverServiceClient.getDriverWithAccountUsername(
+        Driver driver = driverServiceClient.getDriverByAccountUsername(
                 loginAccount.getUsername()
         );
         try {

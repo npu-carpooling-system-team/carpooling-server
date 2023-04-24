@@ -141,7 +141,7 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             return R.error(ResponseCodeEnum.Forbidden, "该接口不允许非司机用户请求。");
         }
         // 需要校验行程ID是否是该司机的
-        Driver driver = userServiceClient.getDriverWithAccountUsername(
+        Driver driver = userServiceClient.getDriverByAccountUsername(
                 loginAccount.getUsername()
         );
         Carpooling carpooling = carpoolingServiceClient.getCarpoolingById(carpoolingId);

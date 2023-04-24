@@ -28,6 +28,9 @@ spring:
           - data-id: mail-config-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
+          - data-id: aliyun-oss-config-${spring.profiles.active}.yaml
+            group: carpooling-system
+            refresh: true
 # TODO 这配置只是暂时这么写 仅用于远程单机调试 生产环境下需要通过脚本获取本机IP地址,之后再DOCKERFILE中通过环境变量传入
 xxl:
   job:
