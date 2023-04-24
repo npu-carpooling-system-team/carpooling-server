@@ -54,10 +54,10 @@ public class UserController {
      * @return Driver
      */
     @GetMapping("/getDriver")
-    public Driver getDriverWithAccountUsername(
+    public Driver getDriverByAccountUsername(
             @RequestParam("username") String username
     ) {
-        return userService.getDriverWithAccountUsername(username);
+        return userService.getDriverByAccountUsername(username);
     }
 
     /**

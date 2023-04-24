@@ -200,7 +200,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public Driver getDriverWithAccountUsername(String username) {
+    public Driver getDriverByAccountUsername(String username) {
         User user = this.getOne(
                 new LambdaQueryWrapper<User>()
                         .eq(User::getUsername, username));

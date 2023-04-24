@@ -31,7 +31,7 @@ public class UserServiceClientFallbackFactory implements FallbackFactory<UserSer
             }
 
             @Override
-            public Driver getDriverWithAccountUsername(String username) {
+            public Driver getDriverByAccountUsername(String username) {
                 log.error("远程调用user-api服务失败,原因:{}", cause.getMessage());
                 return null;
             }

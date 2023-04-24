@@ -31,7 +31,7 @@ public interface UserServiceClient {
     );
 
     @GetMapping("/getDriver")
-    Driver getDriverWithAccountUsername(
+    Driver getDriverByAccountUsername(
             @RequestParam("username") String username
     );
 
