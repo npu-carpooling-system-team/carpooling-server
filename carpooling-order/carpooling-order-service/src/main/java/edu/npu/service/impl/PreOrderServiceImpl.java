@@ -111,11 +111,15 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             String email = userServiceClient
                     .getUserById(order.getPassengerId()).getEmail();
             if (StringUtils.hasText(email)) {
-                sendMailUtil.sendMail(
+                boolean sendMail = sendMailUtil.sendMail(
                         email,
                         "您的订单:" + passOrderDto.orderId() + "拼车申请结果",
                         passOrderDto.pass() ? "您的拼车申请已通过" : "您的拼车申请未通过"
                 );
+                if (!sendMail){
+                    log.error("发送邮件失败，乘客id：{}，订单id：{}",
+                            order.getPassengerId(), order.getId());
+                }
             }
         });
         boolean save = updateById(order);

@@ -13,6 +13,7 @@ import edu.npu.entity.Driver;
 import edu.npu.entity.LoginAccount;
 import edu.npu.exception.CarpoolingException;
 import edu.npu.feignClient.DriverServiceClient;
+import edu.npu.feignClient.OrderServiceClient;
 import edu.npu.mapper.CarpoolingMapper;
 import edu.npu.service.DriverCarpoolingService;
 import edu.npu.vo.PageResultVo;
@@ -64,8 +65,15 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     @Resource
     private RestHighLevelClient restHighLevelClient;
 
-    // 负责执行缓存到ES任务的线程池
-    private static final ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+    @Resource
+    private OrderServiceClient orderServiceClient;
+
+    // 负责执行新线程上其他任务的线程池
+    private static final ExecutorService cachedThreadPool =
+            Executors.newFixedThreadPool(
+                // 获取系统核数
+                Runtime.getRuntime().availableProcessors()
+            );
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -77,20 +85,17 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         Carpooling carpooling = new Carpooling();
         BeanUtils.copyProperties(addCarpoolingDto, carpooling);
         carpooling.setDriverId(driver.getDriverId());
-        // ElasticSearch 新起一个线程
-        // 另起一个线程来完成操作 避免阻塞主线程
-        cachedThreadPool.execute(() -> {
-            boolean saveEs = esService.saveCarpoolingToEs(carpooling);
-            if (!saveEs) {
-                log.error("直接新增拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
-                        carpooling);
-            }
-        });
         // MySQL
         boolean saveMySQL = save(carpooling);
         if (!saveMySQL) {
-            return R.error(ResponseCodeEnum.ServerError,
+            return R.error(ResponseCodeEnum.PreCheckFailed,
                     "新增拼车行程失败,MySQL数据库操作失败,请检查参数合法性");
+        }
+        // ElasticSearch 新起一个线程
+        boolean saveEs = esService.saveCarpoolingToEs(carpooling);
+        if (!saveEs) {
+            log.error("直接新增拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
+                    carpooling);
         }
         return R.ok();
     }
@@ -103,10 +108,10 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         // 预校验
         if (editCarpoolingDto.totalPassengerNo() < editCarpoolingDto.leftPassengerNo()
         ) {
-            return R.error(ResponseCodeEnum.ServerError,
+            return R.error(ResponseCodeEnum.PreCheckFailed,
                     "不允许更改行程,您设置的剩余座位数不能大于总座位数");
         } else if (!Objects.equals(id, editCarpoolingDto.id())) {
-            return R.error(ResponseCodeEnum.ServerError,
+            return R.error(ResponseCodeEnum.PreCheckFailed,
                     "不允许更改行程,您设置的id与请求路径中的id不一致");
         }
         // 需要同时修改MySQL和ElasticSearch
@@ -116,14 +121,16 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         );
         if (driver.getDriversLicenseType().startsWith("C") &&
                 editCarpoolingDto.totalPassengerNo() >= 4) {
-            return R.error(ResponseCodeEnum.ServerError,
+            return R.error(ResponseCodeEnum.PreCheckFailed,
                     "不允许更改行程,您设置的总座位数不能大于4");
         }
         Date departureTime = editCarpoolingDto.departureTime();
-        // 如果出发时间为当前时间六小时内则不允许修改 TODO 除非没有乘客 预留远程调用接口
-        if (departureTime.before(DateUtil.offsetHour(new Date(), 6))) {
-            return R.error(ResponseCodeEnum.ServerError,
-                    "不允许更改行程,您设置的出发时间必须在当前时间六小时之后");
+        // 如果出发时间为当前时间六小时内 同时有乘客
+        if (departureTime.before(DateUtil.offsetHour(new Date(), 6))
+                && orderServiceClient.checkHasPassenger(id)
+        ) {
+            return R.error(ResponseCodeEnum.PreCheckFailed,
+                    "不允许更改行程,出发前6小时内且有乘客时不允许更改行程");
         }
         // 不知道为什么用BeanUtils.copyProperties()都是空的
         Carpooling carpooling = new Carpooling();
@@ -136,11 +143,18 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                 log.error("直接修改拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
                         carpooling);
             }
+            // 远程调用,发送通知邮件
+            orderServiceClient
+                    .sendNoticeMailToUser(carpooling.getId(),
+                            "您的行程已被修改,请注意查看",
+                            "请及时登录西工大拼车平台查看您的行程改动信息,行程编号:"
+                            + carpooling.getId()
+                    );
         });
         // MySQL
         boolean saveMySQL = updateById(carpooling);
         if (!saveMySQL) {
-            return R.error(ResponseCodeEnum.ServerError,
+            return R.error(ResponseCodeEnum.PreCheckFailed,
                     "修改拼车行程失败,MySQL数据库操作失败,请确认参数合法性");
         }
         return R.ok();
@@ -155,13 +169,16 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         );
         Carpooling carpooling = getById(id);
         if (!Objects.equals(driver.getDriverId(), carpooling.getDriverId())) {
-            return R.error(ResponseCodeEnum.ServerError,
+            return R.error(ResponseCodeEnum.PreCheckFailed,
                     "不允许删除行程,您不是该行程的发布者");
         }
-        // 发车前六小时不允许删除 TODO 除非没有乘客 预留远程调用接口
-        if (carpooling.getDepartureTime().before(DateUtil.offsetHour(new Date(), 6))) {
-            return R.error(ResponseCodeEnum.ServerError,
-                    "不允许删除行程,出发前6小时内不允许删除行程");
+        // 发车前六小时 同时有乘客不允许删除
+        if (carpooling.getDepartureTime()
+                .before(DateUtil.offsetHour(new Date(), 6))
+                && orderServiceClient.checkHasPassenger(id)
+        ) {
+            return R.error(ResponseCodeEnum.PreCheckFailed,
+                    "不允许删除行程,出发前6小时内且有乘客时不允许删除行程");
         }
         // MySQL和ES都要删掉
         // ES 还是要新起一个线程来避免阻塞主线程
@@ -171,11 +188,21 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                 log.error("直接删除拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
                         carpooling);
             }
+            // 发送通知邮件
+            orderServiceClient
+                    .sendNoticeMailToUser(
+                            carpooling.getId(),
+                            "您的行程已被删除,请注意查看",
+                            "请及时登录西工大拼车平台查看您的行程删除信息,行程编号:"
+                            + carpooling.getId()
+                    );
+            // 调用远程服务更改状态
+            orderServiceClient.forceCloseOrderByCarpoolingId(id);
         });
         // MySQL
         boolean removeMySQL = removeById(id);
         if (!removeMySQL) {
-            return R.error(ResponseCodeEnum.ServerError,
+            return R.error(ResponseCodeEnum.PreCheckFailed,
                     "删除拼车行程失败,MySQL数据库操作失败,请确认参数合法性");
         }
         return R.ok();

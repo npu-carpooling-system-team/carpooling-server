@@ -19,9 +19,9 @@ public class DrivingOrderController {
 
     /**
      * 乘客确认发车
-     * @param orderId
-     * @param loginAccount
-     * @return
+     * @param orderId 订单ID
+     * @param loginAccount 登录账号
+     * @return R
      */
     @PostMapping("/passenger/departure/confirm/{orderId}")
     public R passengerConfirmDeparture(@PathVariable("orderId") Long orderId,
@@ -31,9 +31,9 @@ public class DrivingOrderController {
 
     /**
      * 乘客确认到达
-     * @param orderId
-     * @param loginAccount
-     * @return
+     * @param orderId 订单ID
+     * @param loginAccount 登录账号
+     * @return R
      */
     @PostMapping("/passenger/arrive/confirm/{orderId}")
     public R passengerConfirmArrive(@PathVariable("orderId") Long orderId,
