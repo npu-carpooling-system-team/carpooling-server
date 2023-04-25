@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: payment-api
+  profiles:
+    active: dev

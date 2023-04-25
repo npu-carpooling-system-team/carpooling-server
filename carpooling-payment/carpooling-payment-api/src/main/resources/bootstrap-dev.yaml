@@ -1,0 +1,30 @@
+spring:
+  cloud:
+    nacos:
+      server-addr: 60.204.153.158:8848
+      discovery:
+        namespace: ${spring.profiles.active}
+        group: carpooling-system
+      config:
+        namespace: ${spring.profiles.active}
+        extension-configs:
+          # 玄学 我也不知道为什么直接写dev1不行,要这样拼接一下 反正跑起来就算成功
+          - data-id: ${spring.application.name}-${spring.profiles.active}.yaml
+            group: carpooling-system
+            refresh: true
+        shared-configs:
+          - data-id: security-sdk-${spring.profiles.active}.yaml
+            group: carpooling-system
+            refresh: true
+          - data-id: db-config-${spring.profiles.active}.yaml
+            group: carpooling-system
+            refresh: true
+          - data-id: alipay-config-${spring.profiles.active}.properties
+            group: carpooling-system
+            refresh: true
+
+# TODO 这配置只是暂时这么写 仅用于远程单机调试 生产环境下需要通过脚本获取本机IP地址,之后再DOCKERFILE中通过环境变量传入
+#xxl:
+#  job:
+#    executor:
+#      ip: 60.204.153.158
