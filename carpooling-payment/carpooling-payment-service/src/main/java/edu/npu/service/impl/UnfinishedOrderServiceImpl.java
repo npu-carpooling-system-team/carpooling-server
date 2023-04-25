@@ -15,6 +15,10 @@ import org.springframework.stereotype.Service;
 public class UnfinishedOrderServiceImpl extends ServiceImpl<UnfinishedOrderMapper, UnfinishedOrder>
     implements UnfinishedOrderService{
 
+    @Override
+    public boolean closeOrder(int shardIndex, int shardTotal, int i) {
+        return false;
+    }
 }
 
 

@@ -1,7 +1,10 @@
 package edu.npu.service;
 
+import edu.npu.entity.LoginAccount;
 import edu.npu.entity.Order;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.Map;
 
 /**
 * @author wangminan
@@ -10,4 +13,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface OrderService extends IService<Order> {
 
+    String startPay(Long orderId, LoginAccount loginAccount);
+
+    String checkSignAndConfirm(Map<String, String> notifyParams);
 }

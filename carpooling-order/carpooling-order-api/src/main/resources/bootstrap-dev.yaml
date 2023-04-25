@@ -12,6 +12,9 @@ spring:
           - data-id: ${spring.application.name}-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
+          - data-id: chat-xxl-${spring.profiles.active}.yaml
+            group: carpooling-system
+            refresh: true
         shared-configs:
           - data-id: security-sdk-${spring.profiles.active}.yaml
             group: carpooling-system
@@ -20,9 +23,6 @@ spring:
             group: carpooling-system
             refresh: true
           - data-id: redis-config-${spring.profiles.active}.yaml
-            group: carpooling-system
-            refresh: true
-          - data-id: chat-xxl-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
           - data-id: mail-config-${spring.profiles.active}.yaml
