@@ -35,6 +35,8 @@ public class PassengerCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper
     @Resource
     private DriverCarpoolingService driverCarpoolingService;
 
+    // TODO 为了加快前端有大量数据情况下的加载速度 这个接口和司机的搜索接口可以做优化
+    // 在这个位置仅返回行程的基础数据 在进入详情页面时执行二次请求。二次请求的过程可以走两级搜索的模式
     @Override
     public R getCarpoolingList(PageQueryDto pageQueryDto) {
         // 需要从ES中检索数据 同时注意分页 我们这种数据量较小的情况可以使用from-size方式
