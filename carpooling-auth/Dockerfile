@@ -1,6 +1,7 @@
-FROM openjdk:17.0.6
+FROM openjdk:17.0.7
 LABEL authors="wangminan"
 COPY target/carpooling-auth-1.0-SNAPSHOT.jar /app.jar
-EXPOSE 63010
+EXPOSE 63020
 ENV TZ Asia/Shanghai
-ENTRYPOINT ["java","-jar","/app.jar","--spring.profiles.active=prod"]
+ENV JAVA_OPTS="-Dfile.encoding=UTF-8"
+ENTRYPOINT java -jar ${JAVA_OPTS} /app.jar --spring.profiles.active=prod
