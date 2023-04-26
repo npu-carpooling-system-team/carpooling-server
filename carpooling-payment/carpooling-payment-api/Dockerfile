@@ -1,4 +1,4 @@
-FROM openjdk:17.0.7
+FROM openjdk:17.0.6
 LABEL authors="wangminan"
 COPY target/carpooling-payment-api-1.0-SNAPSHOT.jar /app.jar
 EXPOSE 63060

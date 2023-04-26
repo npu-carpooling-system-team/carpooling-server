@@ -1,4 +1,4 @@
-name: Backend-Sonar-Scan
+name: Backend-Deploy
 
 on:
   push:
