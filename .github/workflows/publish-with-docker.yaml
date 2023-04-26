@@ -89,7 +89,7 @@ jobs:
     needs: build
     steps:
       - name: 传输docker-compose到服务器
-        run: sshpass -p ${{secrets.REMOTE_PWD}} scp -r -o StrictHostKeyChecking=no ./docker-compose.yaml root@${{secrets.REMOTE_IP}}:/root/carpooling-server
+        run: ls && sshpass -p ${{secrets.REMOTE_PWD}} scp -r -o StrictHostKeyChecking=no ./docker-compose.yaml root@${{secrets.REMOTE_IP}}:/root/carpooling-server
 
       - name: 传输部署脚本到服务器
         run: sshpass -p ${{secrets.REMOTE_PWD}} scp -r -o StrictHostKeyChecking=no ./deploy.sh root@${{secrets.REMOTE_IP}}:/root/carpooling-server
