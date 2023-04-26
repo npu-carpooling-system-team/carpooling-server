@@ -15,7 +15,6 @@ import edu.npu.entity.UnfinishedOrder;
 import edu.npu.entity.User;
 import edu.npu.feignClient.CarpoolingServiceClient;
 import edu.npu.feignClient.UserServiceClient;
-import edu.npu.mapper.OrderMapper;
 import edu.npu.mapper.UnfinishedOrderMapper;
 import edu.npu.service.OrderService;
 import edu.npu.service.UnfinishedOrderService;
@@ -123,7 +122,7 @@ public class UnfinishedOrderServiceImpl extends ServiceImpl<UnfinishedOrderMappe
                                 order.getCarpoolingId()
                         ).getDriverId()
                 );
-                // 给Driver发邮件 很遗憾地通知他这笔钞票要不回来了
+                // 给Driver发邮件 很遗憾的通知他这笔钞票要不回来了
                 sendMailUtil.sendMail(
                         driver.getEmail(),
                         "西工大拼车平台订单超时未收款到账通知",

@@ -16,6 +16,7 @@ import edu.npu.feignClient.DriverServiceClient;
 import edu.npu.feignClient.OrderServiceClient;
 import edu.npu.mapper.CarpoolingMapper;
 import edu.npu.service.DriverCarpoolingService;
+import edu.npu.util.RedisClient;
 import edu.npu.vo.PageResultVo;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
@@ -29,6 +30,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -40,8 +42,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static edu.npu.common.EsConstants.CARPOOLING_INDEX;
+import static edu.npu.common.RedisConstants.CACHE_CARPOOLING_KEY;
+import static edu.npu.common.RedisConstants.CACHE_CARPOOLING_TTL;
 
 /**
  * @author wangminan
@@ -60,6 +65,9 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     private DriverServiceClient driverServiceClient;
 
     @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
     private EsService esService;
 
     @Resource
@@ -68,11 +76,14 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     @Resource
     private OrderServiceClient orderServiceClient;
 
+    @Resource
+    private RedisClient redisClient;
+
     // 负责执行新线程上其他任务的线程池
     private static final ExecutorService cachedThreadPool =
             Executors.newFixedThreadPool(
-                // 获取系统核数
-                Runtime.getRuntime().availableProcessors()
+                    // 获取系统核数
+                    Runtime.getRuntime().availableProcessors()
             );
 
     @Override
@@ -91,12 +102,23 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
             return R.error(ResponseCodeEnum.PreCheckFailed,
                     "新增拼车行程失败,MySQL数据库操作失败,请检查参数合法性");
         }
-        // ElasticSearch 新起一个线程
-        boolean saveEs = esService.saveCarpoolingToEs(carpooling);
-        if (!saveEs) {
-            log.error("直接新增拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
-                    carpooling);
-        }
+        // 新起一个线程
+        cachedThreadPool.execute(
+            () -> {
+                // ElasticSearch
+                boolean saveEs = esService.saveCarpoolingToEs(carpooling);
+                if (!saveEs) {
+                    log.error("直接新增拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
+                            carpooling);
+                }
+                // Redis 缓存预热
+                redisClient.setWithLogicalExpire(
+                        CACHE_CARPOOLING_KEY + carpooling.getId(),
+                        carpooling,
+                        CACHE_CARPOOLING_TTL, TimeUnit.MINUTES
+                );
+            }
+        );
         return R.ok();
     }
 
@@ -145,11 +167,17 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
             }
             // 远程调用,发送通知邮件
             orderServiceClient
-                    .sendNoticeMailToUser(carpooling.getId(),
-                            "您的行程已被修改,请注意查看",
-                            "请及时登录西工大拼车平台查看您的行程改动信息,行程编号:"
-                            + carpooling.getId()
-                    );
+                .sendNoticeMailToUser(carpooling.getId(),
+                        "您的行程已被修改,请注意查看",
+                        "请及时登录西工大拼车平台查看您的行程改动信息,行程编号:"
+                                + carpooling.getId()
+                );
+            // 更新Redis缓存
+            redisClient.setWithLogicalExpire(
+                    CACHE_CARPOOLING_KEY + carpooling.getId(),
+                    carpooling,
+                    CACHE_CARPOOLING_TTL, TimeUnit.MINUTES
+            );
         });
         // MySQL
         boolean saveMySQL = updateById(carpooling);
@@ -188,13 +216,15 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                 log.error("直接删除拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
                         carpooling);
             }
+            // 刷新Redis 删除
+            stringRedisTemplate.delete(CACHE_CARPOOLING_KEY + id);
             // 发送通知邮件
             orderServiceClient
                     .sendNoticeMailToUser(
                             carpooling.getId(),
                             "您的行程已被删除,请注意查看",
                             "请及时登录西工大拼车平台查看您的行程删除信息,行程编号:"
-                            + carpooling.getId()
+                                    + carpooling.getId()
                     );
             // 调用远程服务更改状态
             orderServiceClient.forceCloseOrderByCarpoolingId(id);

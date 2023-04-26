@@ -19,4 +19,12 @@ public class RedisConstants {
     public static final String HASH_TOKEN_KEY = "token";
 
     public static final String HASH_LOGIN_ACCOUNT_KEY = "loginAccount";
+
+    public static final Long CACHE_NULL_TTL = 2L;
+
+    public static final String CACHE_CARPOOLING_KEY = "carpooling:";
+
+    public static final Long CACHE_CARPOOLING_TTL = 30L;
+
+    public static final String LOCK_CARPOOLING_KEY = "lock:carpooling:";
 }
