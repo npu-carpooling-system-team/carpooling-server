@@ -1,0 +1,35 @@
+spring:
+  cloud:
+    nacos:
+      server-addr: 60.204.153.158:8848
+      discovery:
+        namespace: ${spring.profiles.active}
+        group: carpooling-system
+      config:
+        namespace: ${spring.profiles.active}
+        extension-configs:
+          # 玄学 我也不知道为什么直接写dev1不行,要这样拼接一下 反正跑起来就算成功
+          - data-id: ${spring.application.name}-${spring.profiles.active}.yaml
+            group: carpooling-system
+            refresh: true
+          - data-id: unfinished-order-xxl-${spring.profiles.active}.yaml
+            group: carpooling-system
+            refresh: true
+        shared-configs:
+          - data-id: security-sdk-${spring.profiles.active}.yaml
+            group: carpooling-system
+            refresh: true
+          - data-id: db-config-${spring.profiles.active}.yaml
+            group: carpooling-system
+            refresh: true
+          - data-id: alipay-config-${spring.profiles.active}.properties
+            group: carpooling-system
+            refresh: true
+          - data-id: mail-config-${spring.profiles.active}.yaml
+            group: carpooling-system
+            refresh: true
+
+xxl:
+  job:
+    executor:
+      ip: 60.204.153.158

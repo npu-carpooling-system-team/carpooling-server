@@ -1,0 +1,114 @@
+version: "3"
+services:
+  gateway_1:
+    container_name: gateway_1
+    restart: always
+    image: wangminan/carpooling-gateway:latest
+    networks:
+      - carpooling-network
+    ports:
+      - "63010:63010"
+  gateway_2:
+    container_name: gateway_2
+    restart: always
+    image: wangminan/carpooling-gateway:latest
+    networks:
+      - carpooling-network
+    ports:
+      - "63011:63010"
+  auth_1:
+    container_name: auth_1
+    restart: always
+    image: wangminan/carpooling-auth:latest
+    networks:
+      - carpooling-network
+    ports:
+      - "63020:63020"
+  auth_2:
+    container_name: auth_2
+    restart: always
+    image: wangminan/carpooling-auth:latest
+    networks:
+      - carpooling-network
+    ports:
+      - "63021:63020"
+  user_1:
+    container_name: user_1
+    restart: always
+    image: wangminan/carpooling-user-api:latest
+    networks:
+      - carpooling-network
+    ports:
+      - "63030:63030"
+  user_2:
+    container_name: user_2
+    restart: always
+    image: wangminan/carpooling-user-api:latest
+    networks:
+      - carpooling-network
+    ports:
+      - "63031:63030"
+  carpooling_1:
+    container_name: carpooling_1
+    restart: always
+    image: wangminan/carpooling-carpooling-api:latest
+    networks:
+      - carpooling-network
+    ports:
+      - "63040:63040"
+  carpooling_2:
+    container_name: carpooling_2
+    restart: always
+    image: wangminan/carpooling-carpooling-api:latest
+    networks:
+      - carpooling-network
+    ports:
+      - "63041:63040"
+  order_1:
+    container_name: order_1
+    restart: always
+    image: wangminan/carpooling-order-api:latest
+    networks:
+      - carpooling-network
+    ports:
+      - "63050:63050"
+      - "63055:63055"
+    environment:
+      - JAVA_OPTS=-Dxxl.job.excutor.ip=60.204.153.158 -Dxxl.job.excutor.port=63055
+  order_2:
+    container_name: order_2
+    restart: always
+    image: wangminan/carpooling-order-api:latest
+    networks:
+      - carpooling-network
+    ports:
+      - "63051:63050"
+      - "63056:63056"
+    environment:
+      - JAVA_OPTS=-Dxxl.job.excutor.ip=60.204.153.158 -Dxxl.job.excutor.port=63056
+  payment_1:
+    container_name: payment_1
+    restart: always
+    image: wangminan/carpooling-payment-api:latest
+    networks:
+      - carpooling-network
+    ports:
+      - "63060:63060"
+      - "63065:63065"
+    environment:
+      - JAVA_OPTS=-Dxxl.job.excutor.ip=60.204.153.158 -Dxxl.job.excutor.port=63065
+  payment_2:
+    container_name: payment_2
+    restart: always
+    image: wangminan/carpooling-payment-api:latest
+    networks:
+      - carpooling-network
+    ports:
+      - "63061:63060"
+      - "63066:63066"
+    environment:
+      - JAVA_OPTS=-Dxxl.job.excutor.ip=60.204.153.158 -Dxxl.job.excutor.port=63066
+
+networks:
+  carpooling-network:
+    external: true

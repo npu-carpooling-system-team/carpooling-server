@@ -25,4 +25,3 @@ spring:
           - data-id: redis-config-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
-
