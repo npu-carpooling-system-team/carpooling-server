@@ -16,17 +16,17 @@ public class R extends HashMap<String, Object> {
     private static final long serialVersionUID = 16545151L;
 
     public R() {
-        put("code", ResponseCodeEnum.Success.getValue());
+        put("code", ResponseCodeEnum.SUCCESS.getValue());
     }
 
     public static R error() {
         return error(
-                ResponseCodeEnum.ServerError, "未知异常，请联系管理员");
+                ResponseCodeEnum.SERVER_ERROR, "未知异常，请联系管理员");
     }
 
     public static R error(String msg) {
         return error(
-                ResponseCodeEnum.ServerError, msg);
+                ResponseCodeEnum.SERVER_ERROR, msg);
     }
 
     public static R error(ResponseCodeEnum responseCodeEnum, String msg) {

@@ -29,20 +29,6 @@ public class SendSmsUtil {
     private ObjectMapper objectMapper;
 
     public void sendSmsCode(String phoneNumber, String code){
-        // HttpClient Configuration
-        /*HttpClient httpClient = new ApacheAsyncHttpClientBuilder()
-                .connectionTimeout(Duration.ofSeconds(10)) // Set the connection timeout time, the default is 10 seconds
-                .responseTimeout(Duration.ofSeconds(10)) // Set the response timeout time, the default is 20 seconds
-                .maxConnections(128) // Set the connection pool size
-                .maxIdleTimeOut(Duration.ofSeconds(50)) // Set the connection pool timeout, the default is 30 seconds
-                // Configure the proxy
-                .proxy(new ProxyOptions(ProxyOptions.Type.HTTP, new InetSocketAddress("<your-proxy-hostname>", 9001))
-                        .setCredentials("<your-proxy-username>", "<your-proxy-password>"))
-                // If it is an https connection, you need to configure the certificate, or ignore the certificate(.ignoreSSL(true))
-                .x509TrustManagers(new X509TrustManager[]{})
-                .keyManagers(new KeyManager[]{})
-                .ignoreSSL(false)
-                .build();*/
 
         // Configure Credentials authentication information, including ak, secret, token
         StaticCredentialProvider provider = StaticCredentialProvider.create(Credential.builder()
@@ -89,15 +75,8 @@ public class SendSmsUtil {
             }
         } catch (InterruptedException | ExecutionException | JsonProcessingException e) {
             log.error("send sms error: " + e.getMessage());
-            CarpoolingException.cast("send sms error");
+            throw new CarpoolingException(e.getMessage());
         }
-        // Asynchronous processing of return values
-        /*response.thenAccept(resp -> {
-            System.out.println(new Gson().toJson(resp));
-        }).exceptionally(throwable -> { // Handling exceptions
-            System.out.println(throwable.getMessage());
-            return null;
-        });*/
 
         // Finally, close the client
         client.close();

@@ -58,7 +58,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         boolean saveChatToDb = save(chat);
         if (!saveChatToDb) {
             log.error("保存聊天记录:{}失败,MySQL异常", chat);
-            return R.error(ResponseCodeEnum.ServerError, "保存聊天记录失败");
+            return R.error(ResponseCodeEnum.SERVER_ERROR, "保存聊天记录失败");
         }
         // 将消息通知存入Redis 我的想法是用一个set
         // key值为 communication:notice:{toUserId} value在set中加入fromUserId

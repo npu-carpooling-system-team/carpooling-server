@@ -13,6 +13,7 @@ import edu.npu.common.OrderStatusEnum;
 import edu.npu.entity.Order;
 import edu.npu.entity.UnfinishedOrder;
 import edu.npu.entity.User;
+import edu.npu.exception.CarpoolingException;
 import edu.npu.feignClient.CarpoolingServiceClient;
 import edu.npu.feignClient.UserServiceClient;
 import edu.npu.mapper.UnfinishedOrderMapper;
@@ -159,14 +160,14 @@ public class UnfinishedOrderServiceImpl extends ServiceImpl<UnfinishedOrderMappe
         try {
             response = alipayClient.execute(request);
         } catch (AlipayApiException e) {
-            throw new RuntimeException(e);
+            throw new CarpoolingException("调用支付宝查单接口失败");
         }
         if (response.isSuccess()){
             JsonNode jsonNode;
             try {
                 jsonNode = objectMapper.readTree(response.getBody());
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new CarpoolingException("解析支付宝查单接口返回的json失败");
             }
             JsonNode tradeStatus = jsonNode
                     .get("alipay_trade_query_response").get("trade_status");

@@ -4,6 +4,11 @@ package edu.npu.util;
  * @author wangminan
  */
 public abstract class RegexPatterns {
+
+    private RegexPatterns(){
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
      * 手机号正则
      */

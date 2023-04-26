@@ -29,6 +29,7 @@ public class LocalDateTimeDeserializer extends JsonDeserializer<LocalDateTime> {
         try {
             dateTime = DateUtil.parse(dateStr);
         } catch (Exception e) {
+            // 使用replaceAll配合正则表达式来替换T
             dateTime = DateUtil.parseDateTime(dateStr.replaceAll("T", " "));
         }
         Date date = dateTime.toJdkDate();

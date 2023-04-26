@@ -99,7 +99,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         // MySQL
         boolean saveMySQL = save(carpooling);
         if (!saveMySQL) {
-            return R.error(ResponseCodeEnum.PreCheckFailed,
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
                     "新增拼车行程失败,MySQL数据库操作失败,请检查参数合法性");
         }
         // 新起一个线程
@@ -130,10 +130,10 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         // 预校验
         if (editCarpoolingDto.totalPassengerNo() < editCarpoolingDto.leftPassengerNo()
         ) {
-            return R.error(ResponseCodeEnum.PreCheckFailed,
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
                     "不允许更改行程,您设置的剩余座位数不能大于总座位数");
         } else if (!Objects.equals(id, editCarpoolingDto.id())) {
-            return R.error(ResponseCodeEnum.PreCheckFailed,
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
                     "不允许更改行程,您设置的id与请求路径中的id不一致");
         }
         // 需要同时修改MySQL和ElasticSearch
@@ -143,7 +143,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         );
         if (driver.getDriversLicenseType().startsWith("C") &&
                 editCarpoolingDto.totalPassengerNo() >= 4) {
-            return R.error(ResponseCodeEnum.PreCheckFailed,
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
                     "不允许更改行程,您设置的总座位数不能大于4");
         }
         Date departureTime = editCarpoolingDto.departureTime();
@@ -151,7 +151,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         if (departureTime.before(DateUtil.offsetHour(new Date(), 6))
                 && orderServiceClient.checkHasPassenger(id)
         ) {
-            return R.error(ResponseCodeEnum.PreCheckFailed,
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
                     "不允许更改行程,出发前6小时内且有乘客时不允许更改行程");
         }
         // 不知道为什么用BeanUtils.copyProperties()都是空的
@@ -182,7 +182,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         // MySQL
         boolean saveMySQL = updateById(carpooling);
         if (!saveMySQL) {
-            return R.error(ResponseCodeEnum.PreCheckFailed,
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
                     "修改拼车行程失败,MySQL数据库操作失败,请确认参数合法性");
         }
         return R.ok();
@@ -197,7 +197,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         );
         Carpooling carpooling = getById(id);
         if (!Objects.equals(driver.getDriverId(), carpooling.getDriverId())) {
-            return R.error(ResponseCodeEnum.PreCheckFailed,
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
                     "不允许删除行程,您不是该行程的发布者");
         }
         // 发车前六小时 同时有乘客不允许删除
@@ -205,7 +205,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                 .before(DateUtil.offsetHour(new Date(), 6))
                 && orderServiceClient.checkHasPassenger(id)
         ) {
-            return R.error(ResponseCodeEnum.PreCheckFailed,
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
                     "不允许删除行程,出发前6小时内且有乘客时不允许删除行程");
         }
         // MySQL和ES都要删掉
@@ -232,7 +232,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         // MySQL
         boolean removeMySQL = removeById(id);
         if (!removeMySQL) {
-            return R.error(ResponseCodeEnum.PreCheckFailed,
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
                     "删除拼车行程失败,MySQL数据库操作失败,请确认参数合法性");
         }
         return R.ok();
@@ -268,7 +268,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     public R resolveRestResponse(SearchResponse response) {
         PageResultVo pageResult = handlePageResponse(response);
         R r = new R();
-        r.put("code", ResponseCodeEnum.Success.getValue());
+        r.put("code", ResponseCodeEnum.SUCCESS.getValue());
         r.put("total", pageResult.total());
         r.put("data", pageResult.data());
         return r;

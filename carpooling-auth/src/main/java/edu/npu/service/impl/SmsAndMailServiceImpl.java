@@ -60,7 +60,7 @@ public class SmsAndMailServiceImpl implements SmsAndMailService {
         String subject = "西工大拼车平台验证码";
         String content = "您的验证码为：" + checkCode + "，请在5分钟内输入以验证您的邮箱。";
         boolean sendMailSuccess = sendMailUtil.sendMail(to, subject, content);
-        return sendMailSuccess ? R.ok() : R.error(ResponseCodeEnum.ServerError, "邮件发送失败");
+        return sendMailSuccess ? R.ok() : R.error(ResponseCodeEnum.SERVER_ERROR, "邮件发送失败");
     }
 
     @Override
@@ -69,12 +69,12 @@ public class SmsAndMailServiceImpl implements SmsAndMailService {
         String code = checkSmsCodeDto.code();
         String cachedCode = stringRedisTemplate.opsForValue().get(RedisConstants.SMS_CODE_PREFIX + phone);
         if (cachedCode == null){
-            return R.error(ResponseCodeEnum.PreCheckFailed, "验证码已过期");
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED, "验证码已过期");
         } else {
             if (cachedCode.equals(code)){
                 return R.ok();
             } else {
-                return R.error(ResponseCodeEnum.Forbidden, "验证码错误");
+                return R.error(ResponseCodeEnum.FORBIDDEN, "验证码错误");
             }
         }
     }
@@ -85,12 +85,12 @@ public class SmsAndMailServiceImpl implements SmsAndMailService {
         String code = checkMailCodeDto.code();
         String cachedCode = stringRedisTemplate.opsForValue().get(RedisConstants.MAIL_CODE_PREFIX + email);
         if (cachedCode == null){
-            return R.error(ResponseCodeEnum.PreCheckFailed, "验证码已过期");
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED, "验证码已过期");
         } else {
             if (cachedCode.equals(code)){
                 return R.ok();
             } else {
-                return R.error(ResponseCodeEnum.Forbidden, "验证码错误");
+                return R.error(ResponseCodeEnum.FORBIDDEN, "验证码错误");
             }
         }
     }

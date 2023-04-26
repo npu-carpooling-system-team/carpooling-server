@@ -70,6 +70,6 @@ public class FinishedOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         );
         driver.setAvgScore(newScore);
         return userServiceClient.updateDriver(driver) ? R.ok() :
-                R.error(ResponseCodeEnum.ServerError,"更新司机评分失败");
+                R.error(ResponseCodeEnum.SERVER_ERROR,"更新司机评分失败");
     }
 }

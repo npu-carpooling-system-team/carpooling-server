@@ -142,7 +142,7 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         User currentUser = userServiceClient
                 .getUserByAccountUsername(loginAccount.getUsername());
         if (!currentUser.getIsDriver()) {
-            return R.error(ResponseCodeEnum.Forbidden, "该接口不允许非司机用户请求。");
+            return R.error(ResponseCodeEnum.FORBIDDEN, "该接口不允许非司机用户请求。");
         }
         // 需要校验行程ID是否是该司机的
         Driver driver = userServiceClient.getDriverByAccountUsername(
@@ -150,7 +150,7 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         );
         Carpooling carpooling = carpoolingServiceClient.getCarpoolingById(carpoolingId);
         if (!carpooling.getDriverId().equals(driver.getId())) {
-            return R.error(ResponseCodeEnum.Forbidden, "不允许访问不属于您的信息");
+            return R.error(ResponseCodeEnum.FORBIDDEN, "不允许访问不属于您的信息");
         }
         return null;
     }

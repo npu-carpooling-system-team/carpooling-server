@@ -5,6 +5,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.npu.exception.CarpoolingException;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -37,15 +38,6 @@ public class RedisClient {
     @Resource
     private ObjectMapper objectMapper;
 
-    private void set(String key, Object value, Long time, TimeUnit unit) {
-        try {
-            stringRedisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(value), time, unit);
-        } catch (JsonProcessingException e) {
-            log.error("RedisClient set error", e);
-            throw new RuntimeException(e);
-        }
-    }
-
     private boolean tryLock(String key) {
         Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", 10, TimeUnit.SECONDS);
         return BooleanUtil.isTrue(flag);
@@ -64,7 +56,7 @@ public class RedisClient {
             stringRedisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(redisData));
         } catch (JsonProcessingException e) {
             log.error("RedisClient setWithLogicalExpire error", e);
-            throw new RuntimeException(e);
+            throw new CarpoolingException(e.getMessage());
         }
     }
 
@@ -116,7 +108,7 @@ public class RedisClient {
                     // 重建缓存
                     this.setWithLogicalExpire(key, newR, time, unit);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    throw new CarpoolingException(e.getMessage());
                 }finally {
                     // 释放锁
                     unlock(lockKey);

@@ -125,7 +125,7 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
             return StringUtils.hasText(url) ?
                     R.ok().put("result", url) : R.error("生成订单列表失败");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new CarpoolingException("生成订单列表失败");
         }
     }
 
@@ -172,7 +172,7 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
             return StringUtils.hasText(url) ?
                     R.ok().put("result", url) : R.error("生成订单列表失败");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new CarpoolingException("生成订单列表失败");
         }
     }
 

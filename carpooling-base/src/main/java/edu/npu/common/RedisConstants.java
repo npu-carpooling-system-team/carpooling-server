@@ -6,6 +6,10 @@ package edu.npu.common;
  */
 public class RedisConstants {
 
+    private RedisConstants(){
+        throw new IllegalStateException("Utility class");
+    }
+
     public static final String SMS_CODE_PREFIX = "code:sms:";
 
     public static final String MAIL_CODE_PREFIX = "code:mail:";
@@ -20,7 +24,7 @@ public class RedisConstants {
 
     public static final String HASH_LOGIN_ACCOUNT_KEY = "loginAccount";
 
-    public static final Long CACHE_NULL_TTL = 2L;
+//    public static final Long CACHE_NULL_TTL = 2L;
 
     public static final String CACHE_CARPOOLING_KEY = "carpooling:";
 

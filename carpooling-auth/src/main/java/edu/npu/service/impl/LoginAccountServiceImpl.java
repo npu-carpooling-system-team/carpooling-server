@@ -60,6 +60,8 @@ import static edu.npu.common.RedisConstants.*;
 public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, LoginAccount>
     implements LoginAccountService, UserDetailsService {
 
+    public static final String REGISTER_FAILED_MSG = "注册失败,请检查用户名是否重复";
+    public static final String TOKEN = "token";
     @Resource
     private AuthenticationManager authenticationManager;
 
@@ -91,18 +93,12 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
     @Transactional(rollbackFor = Exception.class)
     public R registerUser(UserRegisterDto userRegisterDto) {
         if(!userRegisterDto.isDriver() && !userRegisterDto.isPassenger()){
-            return R.error(ResponseCodeEnum.PreCheckFailed, "请至少选择一个角色");
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED, "请至少选择一个角色");
         }
         if (userRegisterDto.isDriver()){
             // 接下来的字段都不允许为空，否则直接返回失败结果
-            if (userRegisterDto.driversPersonalId().isBlank()
-                    || userRegisterDto.driversLicenseNo().isBlank()
-                    || userRegisterDto.driversLicenseType().isBlank()
-                    || userRegisterDto.driversVehicleType().isBlank()
-                    || userRegisterDto.driversExpireDate().isBlank()
-                    || userRegisterDto.driversPlateNo().isBlank()
-            ){
-                return R.error(ResponseCodeEnum.NotEnoughInformation, "司机注册信息不完整");
+            if (isRegisterDtoValid(userRegisterDto)){
+                return R.error(ResponseCodeEnum.NOT_ENOUGH_INFORMATION, "司机注册信息不完整");
             }
         }
         // 开始处理注册信息
@@ -116,7 +112,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
         loginAccount.setRole(RoleEnum.USER.getValue());
         boolean saveLoginAccount = this.save(loginAccount);
         if (!saveLoginAccount){
-            return R.error(ResponseCodeEnum.ServerError, "注册失败,请检查用户名是否重复");
+            return R.error(ResponseCodeEnum.SERVER_ERROR, REGISTER_FAILED_MSG);
         }
 
         // 只需要添加到user表
@@ -126,7 +122,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
             BeanUtils.copyProperties(userRegisterDto, user);
             int insert = userMapper.insert(user);
             return insert == 1 ? R.ok("注册成功") :
-                    R.error(ResponseCodeEnum.ServerError, "注册失败,请检查用户名是否重复");
+                    R.error(ResponseCodeEnum.SERVER_ERROR, REGISTER_FAILED_MSG);
         } else {
             // 需要同时改动user表和driver表
             User user = new User();
@@ -143,8 +139,17 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
             int insertDriver = driverMapper.insert(driver);
 
             return insertUser == 1 && insertDriver == 1 ? R.ok("注册成功") :
-                    R.error(ResponseCodeEnum.ServerError, "注册失败,请检查用户名是否重复");
+                    R.error(ResponseCodeEnum.SERVER_ERROR, REGISTER_FAILED_MSG);
         }
+    }
+
+    private static boolean isRegisterDtoValid(UserRegisterDto userRegisterDto) {
+        return userRegisterDto.driversPersonalId().isBlank()
+                || userRegisterDto.driversLicenseNo().isBlank()
+                || userRegisterDto.driversLicenseType().isBlank()
+                || userRegisterDto.driversVehicleType().isBlank()
+                || userRegisterDto.driversExpireDate().isBlank()
+                || userRegisterDto.driversPlateNo().isBlank();
     }
 
     @Override
@@ -163,7 +168,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
             return R.ok(result);
         } catch (Exception e) {
             log.error("登录失败", e);
-            return R.error(ResponseCodeEnum.ServerError, "登录失败");
+            return R.error(ResponseCodeEnum.SERVER_ERROR, "登录失败");
         }
     }
 
@@ -180,7 +185,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
         String code = checkSmsCodeDto.code();
         String cachedCode = stringRedisTemplate.opsForValue().get(RedisConstants.SMS_CODE_PREFIX + phone);
         if (cachedCode == null){
-            return R.error(ResponseCodeEnum.PreCheckFailed, "验证码已过期");
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED, "验证码已过期");
         } else {
             if (cachedCode.equals(code)){
                 LoginAccount loginAccount =
@@ -194,7 +199,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
                 Map<String, Object> result = genTokenWithLoginAccount(phone, loginAccount);
                 return R.ok(result);
             } else {
-                return R.error(ResponseCodeEnum.Forbidden, "验证码错误");
+                return R.error(ResponseCodeEnum.FORBIDDEN, "验证码错误");
             }
         }
     }
@@ -209,7 +214,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
         try {
             tokenResponse = alipayClient.execute(tokenRequest);
         } catch (AlipayApiException e) {
-            throw new RuntimeException(e);
+            throw new CarpoolingException(e.getMessage());
         }
         if(tokenResponse.isSuccess()){
             String accessToken = tokenResponse.getAccessToken();
@@ -218,7 +223,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
             try {
                 alipayIdResponse = alipayClient.execute(alipayIdRequest,accessToken);
             } catch (AlipayApiException e) {
-                throw new RuntimeException(e);
+                throw new CarpoolingException(e.getMessage());
             }
             if(alipayIdResponse.isSuccess()){
                 // 支付宝的工作完成了 现在轮到我们的工作
@@ -243,10 +248,10 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
                 SecurityContextHolder.getContext().setAuthentication(authToken);
                 Map<String, Object> result = genTokenWithLoginAccount(
                         user.getUsername(), loginAccount);
-                log.info("支付宝登录成功, 用户: {}, token: {}", user.getUsername(), result.get("token"));
+                log.info("支付宝登录成功, 用户: {}, token: {}", user.getUsername(), result.get(TOKEN));
                 // 拼接URL
                 return "redirect:http://localhost:7070/#/oauth/alipay/success?token=" +
-                        result.get("token") +
+                        result.get(TOKEN) +
                         "&id=" +
                         result.get("id");
             } else {
@@ -285,7 +290,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
                     TOKEN_EXPIRE_TTL,
                     TimeUnit.MILLISECONDS);
         } catch (JsonProcessingException e) {
-            CarpoolingException.cast("loginAccount序列化失败");
+            throw new CarpoolingException("loginAccount序列化失败");
         }
         // 组织返回结果
         Map<String, Object> result = new HashMap<>();
@@ -299,7 +304,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
         } else if(loginAccount.getRole() == RoleEnum.ADMIN.getValue()){
             result.put("role", 1);
         }
-        result.put("token", token);
+        result.put(TOKEN, token);
         return result;
     }
 

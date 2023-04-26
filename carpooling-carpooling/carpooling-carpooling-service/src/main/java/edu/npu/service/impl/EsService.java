@@ -21,6 +21,7 @@ import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.rest.RestStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 
@@ -34,6 +35,7 @@ import static edu.npu.common.EsConstants.CARPOOLING_INDEX;
 @Slf4j
 public class EsService {
 
+    public static final String CONVERT_CARPOOLING_WARNING_LOG = "carpooling对象:{}无法转换为json字符串";
     @Resource
     private ObjectMapper objectMapper;
 
@@ -48,13 +50,12 @@ public class EsService {
         try {
             jsonDoc = objectMapper.writeValueAsString(carpoolingDoc);
         } catch (JsonProcessingException e) {
-            log.error("carpooling对象:{}无法转换为json字符串", carpooling);
-            
+            log.error(CONVERT_CARPOOLING_WARNING_LOG, carpooling);
             CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
                     "carpooling对象无法转换为json字符串");
         }
-        if (StrUtil.isEmpty(jsonDoc)) {
-            log.error("carpooling对象:{}无法转换为json字符串", carpooling);
+        if (!StringUtils.hasText(jsonDoc)) {
+            log.error(CONVERT_CARPOOLING_WARNING_LOG, carpooling);
             CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
                     "carpooling对象无法转换为json字符串");
         }
@@ -94,8 +95,8 @@ public class EsService {
         try {
             jsonDoc = objectMapper.writeValueAsString(carpoolingDoc);
         } catch (JsonProcessingException e) {
-            log.error("carpooling对象:{}无法转换为json字符串", carpooling);
-            
+            log.error(CONVERT_CARPOOLING_WARNING_LOG, carpooling);
+
             CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
                     "修改拼车行程失败,ES出错");
         }

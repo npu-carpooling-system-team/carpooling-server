@@ -16,6 +16,7 @@ import edu.npu.dto.PutUserInfoDto;
 import edu.npu.entity.Driver;
 import edu.npu.entity.LoginAccount;
 import edu.npu.entity.User;
+import edu.npu.exception.CarpoolingException;
 import edu.npu.mapper.DriverMapper;
 import edu.npu.mapper.LoginAccountMapper;
 import edu.npu.mapper.UserMapper;
@@ -66,7 +67,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         try {
             tokenResponse = alipayClient.execute(tokenRequest);
         } catch (AlipayApiException e) {
-            throw new RuntimeException(e);
+            throw new CarpoolingException("调用获取支付宝AK接口失败");
         }
         if (tokenResponse.isSuccess()) {
             String accessToken = tokenResponse.getAccessToken();
@@ -75,7 +76,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             try {
                 alipayIdResponse = alipayClient.execute(alipayIdRequest, accessToken);
             } catch (AlipayApiException e) {
-                throw new RuntimeException(e);
+                throw new CarpoolingException("调用获取支付宝ID接口失败");
             }
             if (alipayIdResponse.isSuccess()) {
                 // 支付宝的工作完成了 现在需要把支付宝ID和User表的User绑定
@@ -112,7 +113,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                         .eq(User::getUsername, loginAccount.getUsername()));
         if (user == null) {
             log.error("用户不存在");
-            return R.error(ResponseCodeEnum.NotFound, "用户不存在");
+            return R.error(ResponseCodeEnum.NOT_FOUND, "用户不存在");
         }
         Driver driver = null;
         if (user.getIsDriver()) {
@@ -134,7 +135,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                         .eq(User::getUsername, putUserInfoDto.username()));
         if (user == null) {
             log.error("所需更新的用户不存在");
-            return R.error(ResponseCodeEnum.NotFound, "所需更新的用户不存在");
+            return R.error(ResponseCodeEnum.NOT_FOUND, "所需更新的用户不存在");
         }
         BeanUtils.copyProperties(putUserInfoDto, user);
 
@@ -157,12 +158,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             if (userUpdate && driverUpdate == 1)
                 return R.ok("用户信息更新成功");
             else
-                return R.error(ResponseCodeEnum.ServerError, "数据库更新用户信息失败");
+                return R.error(ResponseCodeEnum.SERVER_ERROR, "数据库更新用户信息失败");
         } else {
             if (userUpdate)
                 return R.ok("用户信息更新成功");
             else
-                return R.error(ResponseCodeEnum.ServerError, "数据库更新用户信息失败");
+                return R.error(ResponseCodeEnum.SERVER_ERROR, "数据库更新用户信息失败");
         }
 
     }
@@ -175,7 +176,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                         .eq(User::getUsername, loginAccount.getUsername()));
         if (user == null) {
             log.error("所需删除的用户不存在");
-            return R.error(ResponseCodeEnum.NotFound, "所需删除的用户不存在");
+            return R.error(ResponseCodeEnum.NOT_FOUND, "所需删除的用户不存在");
         }
 
         this.removeById(user);
@@ -195,7 +196,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (user == null) {
             return R.ok("账号删除成功");
         } else {
-            return R.error(ResponseCodeEnum.ServerError, "数据库删除失败");
+            return R.error(ResponseCodeEnum.SERVER_ERROR, "数据库删除失败");
         }
     }
 

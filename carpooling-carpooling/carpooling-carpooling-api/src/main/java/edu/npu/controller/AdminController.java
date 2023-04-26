@@ -29,7 +29,7 @@ public class AdminController {
         // preAuthorize不知道为什么不生效 校验身份
         RoleEnum role = RoleEnum.fromValue(loginAccount.getRole());
         if (role == null || role.equals(RoleEnum.USER)) {
-            return R.error(ResponseCodeEnum.Forbidden, "权限不足");
+            return R.error(ResponseCodeEnum.FORBIDDEN, "权限不足");
         }
         return adminCarpoolingService.getDriverList();
     }

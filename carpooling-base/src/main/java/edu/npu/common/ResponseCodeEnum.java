@@ -9,30 +9,30 @@ import org.springframework.http.HttpStatus;
 public enum ResponseCodeEnum {
 
     // ==================== 200 OK ====================
-    Success(2000),
+    SUCCESS(2000),
 
     // ==================== 400 BadRequest ====================
-    RequestError(4000),
+    REQUEST_ERROR(4000),
 
-    CreationError(4001),
+    CREATION_ERROR(4001),
 
     // ==================== 401 Unauthorized ====================
-    AccessTokenExpiredError(4010),
+    ACCESS_TOKEN_EXPIRED_ERROR(4010),
 
-    UserUnauthenticated(4012),
+    USER_UNAUTHENTICATED(4012),
 
     // ==================== 403 Forbidden ====================
-    Forbidden(4030),
+    FORBIDDEN(4030),
 
-    NotEnoughInformation(4031),
+    NOT_ENOUGH_INFORMATION(4031),
 
-    PreCheckFailed(4032),
+    PRE_CHECK_FAILED(4032),
 
     // ==================== 404 NotFound ====================
-    NotFound(4040),
+    NOT_FOUND(4040),
 
     // ==================== 500 InternalServerError ====================
-    ServerError(5000);
+    SERVER_ERROR(5000);
 
     private final int value;
 
