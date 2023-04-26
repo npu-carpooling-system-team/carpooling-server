@@ -15,36 +15,44 @@ import java.util.List;
 @Slf4j
 public class UserServiceClientFallbackFactory implements FallbackFactory<UserServiceClient> {
 
+    public static final String REMOTE_CALL_FAILED = "远程调用user-api服务失败,原因:{}";
+
     @Override
     public UserServiceClient create(Throwable cause) {
         return new UserServiceClient() {
             @Override
             public User getUserByAccountUsername(String username) {
-                log.error("远程调用user-api服务失败,原因:{}", cause.getMessage());
+                log.error(REMOTE_CALL_FAILED, cause.getMessage());
                 return null;
             }
 
             @Override
             public User getUserById(Long id) {
-                log.error("远程调用user-api服务失败,原因:{}", cause.getMessage());
+                log.error(REMOTE_CALL_FAILED, cause.getMessage());
                 return null;
             }
 
             @Override
             public Driver getDriverByAccountUsername(String username) {
-                log.error("远程调用user-api服务失败,原因:{}", cause.getMessage());
+                log.error(REMOTE_CALL_FAILED, cause.getMessage());
                 return null;
             }
 
             @Override
             public List<Driver> getDriverList() {
-                log.error("远程调用user-api服务失败,原因:{}", cause.getMessage());
+                log.error(REMOTE_CALL_FAILED, cause.getMessage());
                 return null;
             }
 
             @Override
             public boolean updateDriver(Driver driver) {
-                log.error("远程调用user-api服务失败,原因:{}", cause.getMessage());
+                log.error(REMOTE_CALL_FAILED, cause.getMessage());
+                return false;
+            }
+
+            @Override
+            public boolean banAccount(User user) {
+                log.error(REMOTE_CALL_FAILED, cause.getMessage());
                 return false;
             }
         };

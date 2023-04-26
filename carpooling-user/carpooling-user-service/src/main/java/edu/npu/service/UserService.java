@@ -23,4 +23,6 @@ public interface UserService extends IService<User> {
     R deleteAccount(LoginAccount loginAccount);
 
     Driver getDriverByAccountUsername(String username);
+
+    boolean banUser(User user);
 }

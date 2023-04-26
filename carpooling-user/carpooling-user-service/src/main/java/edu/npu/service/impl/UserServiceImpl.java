@@ -221,6 +221,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         return driver;
     }
+
+    @Override
+    public boolean banUser(User user) {
+        LoginAccount loginAccount = loginAccountMapper.selectOne(
+                new LambdaQueryWrapper<LoginAccount>()
+                        .eq(LoginAccount::getUsername, user.getUsername())
+        );
+        if (loginAccount == null) {
+            log.error("用户不存在");
+            return false;
+        }
+        deleteAccount(loginAccount);
+        return true;
+    }
 }
 
 

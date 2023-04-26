@@ -105,4 +105,9 @@ public class UserController {
     public boolean updateDriver(@RequestBody Driver driver) {
         return driverService.updateById(driver);
     }
+
+    @DeleteMapping("/ban")
+    public boolean banAccount(@RequestBody User user){
+        return userService.banUser(user);
+    }
 }
