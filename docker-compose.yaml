@@ -74,7 +74,7 @@ services:
       - "63050:63050"
       - "63055:63055"
     environment:
-      - JAVA_OPTS=-Dxxl.job.excutor.ip=60.204.153.158 -Dxxl.job.excutor.port=63055
+      - JAVA_OPTS=-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dxxl.job.excutor.ip=60.204.153.158 -Dxxl.job.excutor.port=63055
   order_2:
     container_name: order_2
     restart: always
@@ -85,7 +85,7 @@ services:
       - "63051:63050"
       - "63056:63056"
     environment:
-      - JAVA_OPTS=-Dxxl.job.excutor.ip=60.204.153.158 -Dxxl.job.excutor.port=63056
+      - JAVA_OPTS=-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dxxl.job.excutor.ip=60.204.153.158 -Dxxl.job.excutor.port=63056
   payment_1:
     container_name: payment_1
     restart: always
@@ -96,7 +96,7 @@ services:
       - "63060:63060"
       - "63065:63065"
     environment:
-      - JAVA_OPTS=-Dxxl.job.excutor.ip=60.204.153.158 -Dxxl.job.excutor.port=63065
+      - JAVA_OPTS=-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dxxl.job.excutor.ip=60.204.153.158 -Dxxl.job.excutor.port=63065
   payment_2:
     container_name: payment_2
     restart: always
@@ -107,7 +107,7 @@ services:
       - "63061:63060"
       - "63066:63066"
     environment:
-      - JAVA_OPTS=-Dxxl.job.excutor.ip=60.204.153.158 -Dxxl.job.excutor.port=63066
+      - JAVA_OPTS=-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dxxl.job.excutor.ip=60.204.153.158 -Dxxl.job.excutor.port=63066
 
 networks:
   carpooling-network:
