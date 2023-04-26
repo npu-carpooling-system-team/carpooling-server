@@ -1,8 +1,12 @@
 package edu.npu.mapper;
 
-import edu.npu.entity.UnfinishedOrder;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import edu.npu.entity.UnfinishedOrder;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 /**
 * @author wangminan
@@ -13,6 +17,10 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface UnfinishedOrderMapper extends BaseMapper<UnfinishedOrder> {
 
+    @Select("SELECT * FROM unfinished_order WHERE id % #{shardTotal} = #{shardIndex} LIMIT #{count}")
+    List<UnfinishedOrder> selectListByShardIndex(@Param("shardIndex") int shardIndex,
+                                                 @Param("shardTotal") int shardTotal,
+                                                 @Param("int count") int count);
 }
 
 

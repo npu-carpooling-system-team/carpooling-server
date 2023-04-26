@@ -84,10 +84,25 @@ public class UserController {
                         .eq(User::getUsername, username));
     }
 
+    /**
+     * 远程调用接口 通过id获取用户信息
+     * @param id 用户id
+     * @return User
+     */
     @GetMapping("/getUserById")
     public User getUserById(
             @RequestParam("id") Long id
     ) {
         return userService.getById(id);
+    }
+
+    /**
+     * 远程调用接口 通过id获取司机信息
+     * @param driver 司机信息
+     * @return boolean
+     */
+    @PutMapping("/updateDriver")
+    public boolean updateDriver(@RequestBody Driver driver) {
+        return driverService.updateById(driver);
     }
 }

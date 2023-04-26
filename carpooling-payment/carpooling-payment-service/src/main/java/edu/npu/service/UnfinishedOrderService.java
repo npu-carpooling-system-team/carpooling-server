@@ -1,7 +1,7 @@
 package edu.npu.service;
 
-import edu.npu.entity.UnfinishedOrder;
 import com.baomidou.mybatisplus.extension.service.IService;
+import edu.npu.entity.UnfinishedOrder;
 
 /**
 * @author wangminan
@@ -10,5 +10,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface UnfinishedOrderService extends IService<UnfinishedOrder> {
 
-    boolean closeOrder(int shardIndex, int shardTotal, int i);
+    boolean closeOrder(int shardIndex, int shardTotal, int count);
 }

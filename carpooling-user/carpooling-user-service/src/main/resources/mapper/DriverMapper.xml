@@ -14,7 +14,7 @@
             <result property="driversPlateNo" column="drivers_plate_no" jdbcType="VARCHAR"/>
             <result property="driversVehicleType" column="drivers_vehicle_type" jdbcType="VARCHAR"/>
             <result property="driversExpireDate" column="drivers_expire_date" jdbcType="TIMESTAMP"/>
-            <result property="avgScore" column="avg_score" jdbcType="INTEGER"/>
+            <result property="avgScore" column="avg_score" jdbcType="FLOAT"/>
             <result property="isDeleted" column="is_deleted" jdbcType="INTEGER"/>
     </resultMap>
 

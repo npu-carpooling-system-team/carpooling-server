@@ -70,7 +70,7 @@ public class Driver implements Serializable {
     /**
      * 司机评分
      */
-    private Integer avgScore;
+    private Long avgScore;
 
     /**
      * 逻辑删除字段,0未删除,1已删除
