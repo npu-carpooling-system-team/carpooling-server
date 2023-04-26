@@ -1,4 +1,4 @@
-FROM openjdk:17.0.6
+FROM openjdk:17.0.2
 LABEL authors="wangminan"
 COPY target/carpooling-order-api-1.0-SNAPSHOT.jar /app.jar
 EXPOSE 63050
