@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
     public R handleCarpoolingException(CarpoolingException e){
         log.error("CarpoolingException:{}", e.getMessage());
 
-        return R.error(e.getMessage());
+        return R.error(ResponseCodeEnum.SERVER_ERROR, e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)//此方法捕获Exception异常

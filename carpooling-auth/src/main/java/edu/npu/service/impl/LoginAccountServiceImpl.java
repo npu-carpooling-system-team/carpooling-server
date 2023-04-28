@@ -237,7 +237,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
                     // TODO 更换为前端异常回调地址
                     return "redirect:http://localhost:7070/#/oauth/alipay/failure";
                 }
-                // 查询LoginAccount
+                // 查b -10询LoginAccount
                 LoginAccount loginAccount =
                         (LoginAccount) this.loadUserByUsername(user.getUsername());
                 UsernamePasswordAuthenticationToken authToken =

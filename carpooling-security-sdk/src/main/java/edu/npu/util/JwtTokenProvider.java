@@ -38,12 +38,14 @@ public class JwtTokenProvider {
     public String generateToken(
             UserDetails userDetails
     ) {
+        Date currentTime = new Date();
+        Date expireTime = new Date(currentTime.getTime() + jwtAccessExpirationInMs);
         return Jwts
                 .builder()
                 .setSubject(userDetails.getUsername())
                 .signWith(getKey(), SignatureAlgorithm.HS256)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtAccessExpirationInMs))
+                .setIssuedAt(currentTime)
+                .setExpiration(expireTime)
                 .compact();
     }
 
