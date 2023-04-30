@@ -93,6 +93,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         Driver driver = driverServiceClient.getDriverByAccountUsername(
                 loginAccount.getUsername()
         );
+        // TODO 校验司机准驾类型与该次行程申请人数是否符合
         Carpooling carpooling = new Carpooling();
         BeanUtils.copyProperties(addCarpoolingDto, carpooling);
         carpooling.setDriverId(driver.getDriverId());

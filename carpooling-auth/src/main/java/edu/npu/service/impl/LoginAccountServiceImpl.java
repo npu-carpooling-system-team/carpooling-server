@@ -235,7 +235,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
                 if (user == null){
                     log.error("支付宝ID: {} 未绑定用户", alipayIdResponse.getUserId());
                     // TODO 更换为前端异常回调地址
-                    return "redirect:http://localhost:7070/#/oauth/alipay/failure";
+                    return "redirect:https://carpooling-client.wangminan.me/#/oauth/alipay/failure";
                 }
                 // 查b -10询LoginAccount
                 LoginAccount loginAccount =
@@ -250,7 +250,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
                         user.getUsername(), loginAccount);
                 log.info("支付宝登录成功, 用户: {}, token: {}", user.getUsername(), result.get(TOKEN));
                 // 拼接URL
-                return "redirect:http://localhost:7070/#/oauth/alipay/success?token=" +
+                return "redirect:https://carpooling-client.wangminan.me/#/oauth/alipay/success?token=" +
                         result.get(TOKEN) +
                         "&id=" +
                         result.get("id");
