@@ -1,6 +1,5 @@
 package edu.npu.service.impl;
 
-import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.npu.doc.CarpoolingDoc;

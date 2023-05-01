@@ -31,3 +31,6 @@ spring:
           - data-id: security-sdk-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
+          - data-id: ocr-config-${spring.profiles.active}.yaml
+            group: carpooling-system
+            refresh: true

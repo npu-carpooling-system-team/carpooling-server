@@ -5,6 +5,7 @@ import edu.npu.dto.UserLoginDto;
 import edu.npu.dto.UserRegisterDto;
 import edu.npu.entity.LoginAccount;
 import edu.npu.service.LoginAccountService;
+import edu.npu.service.OcrService;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author : [wangminan]
@@ -25,6 +28,9 @@ public class BasicAuthController {
     @Resource
     private LoginAccountService loginAccountService;
 
+    @Resource
+    private OcrService ocrService;
+
     /**
      * 用户注册接口
      * @param userRegisterDto 用户注册信息
@@ -34,6 +40,27 @@ public class BasicAuthController {
     public R register(@RequestBody @Validated UserRegisterDto userRegisterDto){
         return loginAccountService.registerUser(userRegisterDto);
     }
+
+    /**
+     * 接收formData格式的请求 校验身份证
+     *
+     * @return R
+     */
+    @PostMapping("/register/ocr/idCard")
+    public R ocrIdCard(@RequestPart("file") MultipartFile file){
+        return ocrService.ocrIdCard(file);
+    }
+
+    @PostMapping("/register/ocr/drivingLicense")
+    public R ocrDrivingLicense(@RequestPart("file") MultipartFile file){
+        return ocrService.ocrDrivingLicense(file);
+    }
+
+    @PostMapping("/register/ocr/vehicleLicense")
+    public R ocrVehicleLicense(@RequestPart("file") MultipartFile file){
+        return ocrService.ocrVehicleLicense(file);
+    }
+
 
     /**
      * 用户名密码登录接口

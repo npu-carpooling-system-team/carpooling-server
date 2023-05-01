@@ -119,6 +119,11 @@
             <groupId>com.alipay.sdk</groupId>
             <artifactId>alipay-sdk-java</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>ocr_api20210707</artifactId>
+        </dependency>
     </dependencies>
 
     <!--  该jar包需要运行 加上该插件 不需要运行则不需要加该插件  -->
