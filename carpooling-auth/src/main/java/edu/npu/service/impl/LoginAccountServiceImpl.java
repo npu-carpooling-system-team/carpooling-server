@@ -43,12 +43,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static edu.npu.common.RedisConstants.*;
+import static edu.npu.util.RegexPatterns.*;
 
 /**
 * @author wangminan
@@ -100,6 +102,19 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
             if (isRegisterDtoValid(userRegisterDto)){
                 return R.error(ResponseCodeEnum.NOT_ENOUGH_INFORMATION, "司机注册信息不完整");
             }
+            // 车牌与身份证号正则
+            if (!userRegisterDto.driversPlateNo().matches(PLATE_NO_REGEX)){
+                return R.error(ResponseCodeEnum.PRE_CHECK_FAILED, "车牌号格式不正确");
+            } else if (!userRegisterDto.driversPersonalId().matches(ID_CARD_REGEX)){
+                return R.error(ResponseCodeEnum.PRE_CHECK_FAILED, "身份证号格式不正确");
+            } else if (!userRegisterDto.driversLicenseNo().matches(ID_CARD_REGEX)){
+                return R.error(ResponseCodeEnum.PRE_CHECK_FAILED, "驾驶证号格式不正确");
+            }
+        }
+        if (StringUtils.hasText(userRegisterDto.email()) &&
+                !userRegisterDto.email().matches(EMAIL_REGEX)){
+            // 正则表达式匹配
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED, "邮箱格式不正确");
         }
         // 开始处理注册信息
         // 添加到loginAccount表

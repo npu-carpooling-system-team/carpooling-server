@@ -38,8 +38,8 @@ public class JwtTokenProvider {
     public String generateToken(
             UserDetails userDetails
     ) {
-        Date currentTime = new Date();
-        Date expireTime = new Date(currentTime.getTime() + jwtAccessExpirationInMs);
+        Date currentTime = new Date(System.currentTimeMillis());
+        Date expireTime = new Date(System.currentTimeMillis() + jwtAccessExpirationInMs);
         return Jwts
                 .builder()
                 .setSubject(userDetails.getUsername())

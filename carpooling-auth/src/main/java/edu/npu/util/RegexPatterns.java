@@ -23,7 +23,7 @@ public abstract class RegexPatterns {
      */
     public static final String VERIFY_CODE_REGEX = "^[\\d]{4}$";
     /**
-     * 身份证正则。用于校验中国身份证号是否合法
+     * 身份证正则。用于校验中国身份证号是否合法 为身份证号或者为空
      */
     public static final String ID_CARD_REGEX = "^[1-9]\\d{5}(19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])\\d{3}[\\dXx]$";
     /**
