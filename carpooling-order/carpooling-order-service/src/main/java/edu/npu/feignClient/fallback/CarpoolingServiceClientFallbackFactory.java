@@ -4,6 +4,7 @@ import edu.npu.entity.Carpooling;
 import edu.npu.feignClient.CarpoolingServiceClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -12,6 +13,7 @@ import java.util.List;
  * @description : [carpooling-api服务远程调用的回调工厂类]
  */
 @Slf4j
+@Component
 public class CarpoolingServiceClientFallbackFactory
         implements FallbackFactory<CarpoolingServiceClient> {
     @Override

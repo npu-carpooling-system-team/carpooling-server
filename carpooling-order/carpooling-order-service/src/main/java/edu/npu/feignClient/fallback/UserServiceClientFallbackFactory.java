@@ -5,6 +5,7 @@ import edu.npu.entity.User;
 import edu.npu.feignClient.UserServiceClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -13,6 +14,7 @@ import java.util.List;
  * @description : [远程调用user-api服务失败回调]
  */
 @Slf4j
+@Component
 public class UserServiceClientFallbackFactory implements FallbackFactory<UserServiceClient> {
 
     @Override

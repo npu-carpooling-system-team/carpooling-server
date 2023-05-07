@@ -4,6 +4,7 @@ import edu.npu.entity.Driver;
 import edu.npu.feignClient.DriverServiceClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
  * @description : [feignClient熔断器]
  */
 @Slf4j
+@Component
 public class DriverServiceClientFallbackFactory implements FallbackFactory<DriverServiceClient> {
 
     @Override
