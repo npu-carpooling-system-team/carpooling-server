@@ -62,6 +62,6 @@ docker-compose rm -f payment_2
 docker-compose up -d payment_2
 
 echo "begin to remove images without tag"
-docker rmi $(docker images | grep "^<none>" | awk "{print $3}")
+docker image prune -a -f
 
 echo "restart successfully"
