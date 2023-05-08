@@ -265,7 +265,8 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
                         user.getUsername(), loginAccount);
                 log.info("支付宝登录成功, 用户: {}, token: {}", user.getUsername(), result.get(TOKEN));
                 // 拼接URL
-                return "redirect:https://carpooling-client.wangminan.me/#/oauth/alipay/success?token=" +
+                return "redirect:https://carpooling-client.wangminan.me/#/oauth/alipay/success" +
+                        "?token=" +
                         result.get(TOKEN) +
                         "&id=" +
                         result.get("id");
@@ -275,7 +276,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
         } else {
             log.error("调用获取支付宝AK接口失败, resp: {}", tokenResponse);
         }
-        return "redirect:http://localhost:7070/#/oauth/alipay/failure";
+        return "redirect:http://carpooling-client.wangminan.me/#/oauth/alipay/failure";
     }
 
     @Override
