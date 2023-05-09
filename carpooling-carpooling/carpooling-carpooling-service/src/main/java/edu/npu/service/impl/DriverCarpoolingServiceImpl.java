@@ -93,7 +93,13 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         Driver driver = driverServiceClient.getDriverByAccountUsername(
                 loginAccount.getUsername()
         );
-        // TODO 校验司机准驾类型与该次行程申请人数是否符合
+        if((driver.getDriversLicenseType().equals("C1") ||
+                driver.getDriversLicenseType().equals("C2")) &&
+                addCarpoolingDto.totalPassengerNo() > 6
+        ){
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
+                    "不允许新增行程,您的驾照类型为C1或C2,最多只能搭载6人");
+        }
         Carpooling carpooling = new Carpooling();
         BeanUtils.copyProperties(addCarpoolingDto, carpooling);
         carpooling.setDriverId(driver.getDriverId());
