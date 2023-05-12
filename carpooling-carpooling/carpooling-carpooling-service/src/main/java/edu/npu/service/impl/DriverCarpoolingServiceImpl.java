@@ -29,6 +29,8 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -286,8 +288,10 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(pageQueryDto);
         // 3. DriverId一致
         boolQueryBuilder.must(QueryBuilders.termQuery("driverId", driverId));
-        // 拼装
-        searchRequest.source().query(boolQueryBuilder);
+        // 拼装 排序时事件从近到远
+        searchRequest.source().query(boolQueryBuilder).sort(
+                SortBuilders.fieldSort("departureTime").order(SortOrder.DESC)
+        );
     }
 
     private PageResultVo handlePageResponse(SearchResponse response) {
@@ -314,7 +318,9 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     public void buildBasicQuery(PageQueryDto pageQueryDto, SearchRequest searchRequest) {
         BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(pageQueryDto);
         // 拼装
-        searchRequest.source().query(boolQueryBuilder);
+        searchRequest.source().query(boolQueryBuilder).sort(
+                SortBuilders.fieldSort("departureTime").order(SortOrder.DESC)
+        );
     }
 
     private static BoolQueryBuilder getBoolQueryBuilder(PageQueryDto pageQueryDto) {

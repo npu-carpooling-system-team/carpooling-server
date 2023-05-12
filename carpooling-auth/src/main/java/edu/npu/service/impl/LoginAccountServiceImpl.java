@@ -163,7 +163,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
                 || userRegisterDto.driversLicenseNo().isBlank()
                 || userRegisterDto.driversLicenseType().isBlank()
                 || userRegisterDto.driversVehicleType().isBlank()
-                || userRegisterDto.driversExpireDate().isBlank()
+                || userRegisterDto.driversExpireDate() == null
                 || userRegisterDto.driversPlateNo().isBlank();
     }
 

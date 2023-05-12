@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import static edu.npu.common.RedisConstants.*;
-import static edu.npu.common.RedisConstants.HASH_LOGIN_ACCOUNT_KEY;
 
 /**
  * @author : [wangminan]

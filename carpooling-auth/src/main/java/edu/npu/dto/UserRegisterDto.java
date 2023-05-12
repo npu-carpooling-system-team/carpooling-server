@@ -5,6 +5,8 @@ import edu.npu.util.RegexPatterns;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
+import java.util.Date;
+
 /**
  * @author : [wangminan]
  * @description : [用户注册的数据传输对象]
@@ -28,7 +30,7 @@ public record UserRegisterDto(
         String driversPlateNo,
         String driversVehicleType,
         @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-        String driversExpireDate
+        Date driversExpireDate
 ) {
 
 }
