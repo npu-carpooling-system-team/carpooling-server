@@ -41,7 +41,6 @@ public class EsService {
     @Resource
     private RestHighLevelClient restHighLevelClient;
 
-    @Transactional(rollbackFor = Exception.class)
     public boolean saveCarpoolingToEs(Carpooling carpooling) {
         log.info("开始保存carpooling:{}到ElasticSearch", carpooling);
         CarpoolingDoc carpoolingDoc = new CarpoolingDoc(carpooling);
@@ -81,7 +80,6 @@ public class EsService {
         return true;
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public boolean updateCarpoolingToEs(Carpooling carpooling) {
         CarpoolingDoc carpoolingDoc = new CarpoolingDoc(carpooling);
         // 1.准备Request
@@ -118,7 +116,6 @@ public class EsService {
         return true;
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public boolean deleteCarpoolingFromEs(Long id) {
         // 1.准备Request      // DELETE /hotel/_doc/{id}
         DeleteRequest request = new DeleteRequest(CARPOOLING_INDEX, String.valueOf(id));

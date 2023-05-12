@@ -34,7 +34,11 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -81,6 +85,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     @Resource
     private RedisClient redisClient;
 
+
     // 负责执行新线程上其他任务的线程池
     private static final ExecutorService cachedThreadPool =
             Executors.newFixedThreadPool(
@@ -89,7 +94,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
             );
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class) // TODO 多线程下的事务控制
     public R addCarpooling(AddCarpoolingDto addCarpoolingDto, LoginAccount loginAccount) {
         // 从loginAccount中获取driverId addCarpoolingDto中获取其他信息
         Driver driver = driverServiceClient.getDriverByAccountUsername(
@@ -169,7 +174,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         BeanUtils.copyProperties(editCarpoolingDto, carpooling);
         // ES 同样新起一个线程来避免阻塞主线程
         cachedThreadPool.execute(() -> {
-            boolean saveEs = esService.saveCarpoolingToEs(carpooling);
+            boolean saveEs = esService.updateCarpoolingToEs(carpooling);
             if (!saveEs) {
                 log.error("直接修改拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
                         carpooling);

@@ -220,6 +220,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             log.error("司机不存在");
             return null;
         }
+        log.info(driver.getDriversLicenseType());
         return driver;
     }
 
