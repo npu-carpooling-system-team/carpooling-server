@@ -20,6 +20,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.rest.RestStatus;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -43,6 +44,7 @@ public class EsService {
     private RestHighLevelClient restHighLevelClient;
 
     @Resource
+    @Lazy
     private FailCachedCarpoolingService failCachedCarpoolingService;
 
     public boolean saveCarpoolingToEs(Carpooling carpooling) {

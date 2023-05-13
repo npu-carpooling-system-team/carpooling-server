@@ -10,6 +10,7 @@ import edu.npu.service.FailCachedCarpoolingService;
 import edu.npu.util.RedisClient;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -36,9 +37,11 @@ public class FailCachedCarpoolingServiceImpl extends ServiceImpl<FailCachedCarpo
     private CarpoolingMapper carpoolingMapper;
 
     @Resource
+    @Lazy
     private EsService esService;
 
     @Resource
+    @Lazy
     private RedisClient redisClient;
 
     @Resource

@@ -10,6 +10,7 @@ import edu.npu.exception.CarpoolingException;
 import edu.npu.service.FailCachedCarpoolingService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -34,6 +35,7 @@ public class RedisClient {
     private StringRedisTemplate stringRedisTemplate;
 
     @Resource
+    @Lazy
     private FailCachedCarpoolingService failCachedCarpoolingService;
 
     private static final ExecutorService CACHE_REBUILD_EXECUTOR =
