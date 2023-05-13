@@ -36,5 +36,4 @@
             <artifactId>alipay-sdk-java</artifactId>
         </dependency>
     </dependencies>
-
 </project>
