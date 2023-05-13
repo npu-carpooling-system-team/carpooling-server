@@ -56,6 +56,9 @@ services:
       - carpooling-network
     ports:
       - "63040:63040"
+      - "63045:63045"
+    environment:
+      - JAVA_OPTS=-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dxxl.job.excutor.ip=60.204.153.158 -Dxxl.job.excutor.port=63045
   carpooling_2:
     container_name: carpooling_2
     restart: always
@@ -64,6 +67,9 @@ services:
       - carpooling-network
     ports:
       - "63041:63040"
+      - "63046:63046"
+    environment:
+      - JAVA_OPTS=-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dxxl.job.excutor.ip=60.204.153.158 -Dxxl.job.excutor.port=63046
   order_1:
     container_name: order_1
     restart: always

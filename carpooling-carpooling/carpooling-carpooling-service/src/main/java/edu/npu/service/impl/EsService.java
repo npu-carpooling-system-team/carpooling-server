@@ -2,10 +2,12 @@ package edu.npu.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.npu.common.UnCachedOperationEnum;
 import edu.npu.doc.CarpoolingDoc;
 import edu.npu.entity.Carpooling;
 import edu.npu.exception.CarpoolingError;
 import edu.npu.exception.CarpoolingException;
+import edu.npu.service.FailCachedCarpoolingService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.delete.DeleteRequest;
@@ -19,7 +21,6 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.rest.RestStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -40,6 +41,9 @@ public class EsService {
 
     @Resource
     private RestHighLevelClient restHighLevelClient;
+
+    @Resource
+    private FailCachedCarpoolingService failCachedCarpoolingService;
 
     public boolean saveCarpoolingToEs(Carpooling carpooling) {
         log.info("开始保存carpooling:{}到ElasticSearch", carpooling);
@@ -68,14 +72,14 @@ public class EsService {
             index = restHighLevelClient.index(request, RequestOptions.DEFAULT);
         } catch (IOException e) {
             log.error("新增拼车行程失败,carpoolingDoc:{}", carpoolingDoc);
-            CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
-                    "新增拼车行程失败,ES出错");
+            failCachedCarpoolingService.saveCachedFileLogToDb(carpooling.getId(),
+                    UnCachedOperationEnum.INSERT);
         }
         // 判断返回状态
         if (index == null || !index.status().equals(RestStatus.CREATED)) {
             log.error("新增拼车行程失败,carpoolingDoc:{},", carpoolingDoc);
-            CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
-                    "新增拼车行程失败,ES出错");
+            failCachedCarpoolingService.saveCachedFileLogToDb(carpooling.getId(),
+                    UnCachedOperationEnum.INSERT);
         }
         return true;
     }
@@ -93,9 +97,8 @@ public class EsService {
             jsonDoc = objectMapper.writeValueAsString(carpoolingDoc);
         } catch (JsonProcessingException e) {
             log.error(CONVERT_CARPOOLING_WARNING_LOG, carpooling);
-
             CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
-                    "修改拼车行程失败,ES出错");
+                    "carpooling对象无法转换为json字符串");
         }
         request.doc(jsonDoc, XContentType.JSON);
         UpdateResponse updateResponse = null;
@@ -105,13 +108,13 @@ public class EsService {
                     restHighLevelClient.update(request, RequestOptions.DEFAULT);
         } catch (IOException e) {
             log.error("修改拼车行程失败,ES出错,carpoolingDoc:{}", carpoolingDoc);
-            CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
-                    "修改拼车行程失败,ES出错");
+            failCachedCarpoolingService.saveCachedFileLogToDb(carpooling.getId(),
+                    UnCachedOperationEnum.UPDATE);
         }
         if (updateResponse == null || !updateResponse.status().equals(RestStatus.OK)) {
             log.error("修改拼车行程失败,carpoolingDoc:{},返回值:{}", carpoolingDoc, updateResponse);
-            CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
-                    "修改拼车行程失败,ES出错");
+            failCachedCarpoolingService.saveCachedFileLogToDb(carpooling.getId(),
+                    UnCachedOperationEnum.UPDATE);
         }
         return true;
     }
@@ -126,13 +129,13 @@ public class EsService {
                     restHighLevelClient.delete(request, RequestOptions.DEFAULT);
         } catch (IOException e) {
             log.error("删除拼车行程失败,ES出错,id:{}", id);
-            CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
-                    "删除拼车行程失败,ES出错");
+            failCachedCarpoolingService.saveCachedFileLogToDb(id,
+                    UnCachedOperationEnum.DELETE);
         }
         if (deleteResponse == null || !deleteResponse.status().equals(RestStatus.OK)) {
             log.error("删除拼车行程失败,id:{},返回值:{}", id, deleteResponse);
-            CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
-                    "删除拼车行程失败");
+            failCachedCarpoolingService.saveCachedFileLogToDb(id,
+                    UnCachedOperationEnum.DELETE);
         }
         return true;
     }

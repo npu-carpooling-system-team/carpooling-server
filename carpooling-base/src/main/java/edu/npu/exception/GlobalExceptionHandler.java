@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public R handleCarpoolingException(CarpoolingException e){
         log.error("CarpoolingException:{}", e.getMessage());
-
+        e.printStackTrace();
         return R.error(ResponseCodeEnum.SERVER_ERROR, e.getMessage());
     }
 
@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
     public R doException(Exception e){
 
         log.error("捕获异常：{}",e.getMessage());
-
+        e.printStackTrace();
         if(e.getMessage().equals("不允许访问")){
             return R.error("没有操作此功能的权限");
         }

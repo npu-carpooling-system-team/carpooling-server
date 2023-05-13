@@ -33,3 +33,4 @@ xxl:
   job:
     executor:
       ip: 60.204.153.158
+      port: 63065

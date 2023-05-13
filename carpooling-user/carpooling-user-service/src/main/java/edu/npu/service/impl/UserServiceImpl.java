@@ -107,6 +107,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public R getInfo(LoginAccount loginAccount) {
+        if (loginAccount == null) {
+            return R.error(ResponseCodeEnum.FORBIDDEN, "当前用户未登录");
+        }
         User user = this.getOne(
                 new QueryWrapper<User>()
                         .lambda()

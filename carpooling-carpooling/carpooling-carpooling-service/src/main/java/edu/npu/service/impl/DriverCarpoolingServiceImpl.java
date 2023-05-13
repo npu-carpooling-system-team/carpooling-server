@@ -34,11 +34,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -127,7 +123,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                 }
                 // Redis 缓存预热
                 redisClient.setWithLogicalExpire(
-                        CACHE_CARPOOLING_KEY + carpooling.getId(),
+                        CACHE_CARPOOLING_KEY, carpooling.getId(),
                         carpooling,
                         CACHE_CARPOOLING_TTL, TimeUnit.MINUTES
                 );
@@ -188,7 +184,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                 );
             // 更新Redis缓存
             redisClient.setWithLogicalExpire(
-                    CACHE_CARPOOLING_KEY + carpooling.getId(),
+                    CACHE_CARPOOLING_KEY, carpooling.getId(),
                     carpooling,
                     CACHE_CARPOOLING_TTL, TimeUnit.MINUTES
             );

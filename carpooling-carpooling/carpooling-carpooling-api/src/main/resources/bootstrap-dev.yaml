@@ -12,6 +12,9 @@ spring:
           - data-id: ${spring.application.name}-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
+          - data-id: carpooling-xxl-${spring.profiles.active}.yaml
+            group: carpooling-system
+            refresh: true
         shared-configs:
           - data-id: security-sdk-${spring.profiles.active}.yaml
             group: carpooling-system
@@ -29,3 +32,8 @@ spring:
             group: carpooling-system
             refresh: true
 
+xxl:
+  job:
+    executor:
+      ip: 60.204.153.158
+      port: 63045

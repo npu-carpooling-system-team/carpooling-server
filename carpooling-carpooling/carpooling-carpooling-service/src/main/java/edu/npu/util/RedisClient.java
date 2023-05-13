@@ -5,7 +5,9 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.npu.common.UnCachedOperationEnum;
 import edu.npu.exception.CarpoolingException;
+import edu.npu.service.FailCachedCarpoolingService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -31,6 +33,9 @@ public class RedisClient {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    @Resource
+    private FailCachedCarpoolingService failCachedCarpoolingService;
+
     private static final ExecutorService CACHE_REBUILD_EXECUTOR =
             Executors.newFixedThreadPool(
                     Runtime.getRuntime().availableProcessors() * 2);
@@ -47,7 +52,8 @@ public class RedisClient {
         stringRedisTemplate.delete(key);
     }
 
-    public void setWithLogicalExpire(String key, Object value, Long time, TimeUnit unit) {
+    public <ID> void setWithLogicalExpire(String keyPrefix, ID id, Object value, Long time, TimeUnit unit) {
+        String key = keyPrefix + id;
         // 设置逻辑过期
         RedisData redisData = new RedisData(
                 LocalDateTime.now().plusSeconds(unit.toSeconds(time)), value);
@@ -56,7 +62,8 @@ public class RedisClient {
             stringRedisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(redisData));
         } catch (JsonProcessingException e) {
             log.error("RedisClient setWithLogicalExpire error", e);
-            throw new CarpoolingException(e.getMessage());
+            failCachedCarpoolingService
+                    .saveCachedFileLogToDb(id, UnCachedOperationEnum.SET);
         }
     }
 
@@ -106,7 +113,7 @@ public class RedisClient {
                     // 查询数据库
                     R newR = dbFallback.apply(id);
                     // 重建缓存
-                    this.setWithLogicalExpire(key, newR, time, unit);
+                    this.setWithLogicalExpire(keyPrefix, id, newR, time, unit);
                 } catch (Exception e) {
                     throw new CarpoolingException(e.getMessage());
                 }finally {
