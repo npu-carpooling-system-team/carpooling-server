@@ -10,5 +10,5 @@ import edu.npu.entity.UnfinishedOrder;
 */
 public interface UnfinishedOrderService extends IService<UnfinishedOrder> {
 
-    boolean closeOrder(int shardIndex, int shardTotal, int count);
+    void closeOrder(int shardIndex, int shardTotal, int count);
 }

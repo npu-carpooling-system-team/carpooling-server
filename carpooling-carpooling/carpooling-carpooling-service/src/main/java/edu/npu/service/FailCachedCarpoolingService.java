@@ -11,7 +11,7 @@ import edu.npu.entity.FailCachedCarpooling;
 */
 public interface FailCachedCarpoolingService extends IService<FailCachedCarpooling> {
 
-    boolean syncFailCachedCarpooling(int shardIndex, int shardTotal, int i);
+    void syncFailCachedCarpooling(int shardIndex, int shardTotal, int i);
 
     <ID> void saveCachedFileLogToDb(ID carpoolingId, UnCachedOperationEnum operationEnum);
 }

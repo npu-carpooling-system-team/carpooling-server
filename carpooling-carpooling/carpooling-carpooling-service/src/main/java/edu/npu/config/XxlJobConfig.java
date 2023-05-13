@@ -43,6 +43,7 @@ public class XxlJobConfig {
     @Bean
     public XxlJobSpringExecutor xxlJobExecutor() {
         log.info(">>>>>>>>>>> xxl-job config init.");
+        log.info(">>>xxl-ip: {}, xxl-port: {}", ip, port);
         XxlJobSpringExecutor xxlJobSpringExecutor = new XxlJobSpringExecutor();
         xxlJobSpringExecutor.setAdminAddresses(adminAddresses);
         xxlJobSpringExecutor.setAppname(appname);

@@ -26,10 +26,7 @@ public class CarpoolingCacheJobHandler {
         int shardTotal = 1;
         log.debug("shardIndex="+shardIndex+",shardTotal="+shardTotal);
         // 将fail_cached_carpooling表中的数据同步到ES和Redis中
-        boolean syncSuccess = failCachedCarpoolingService
+        failCachedCarpoolingService
                 .syncFailCachedCarpooling(shardIndex, shardTotal, 100);
-        if (!syncSuccess){
-            log.error("定时同步失败,请检查后端服务是否正常");
-        }
     }
 }

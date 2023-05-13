@@ -31,9 +31,3 @@ spring:
           - data-id: redis-config-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
-
-xxl:
-  job:
-    executor:
-      ip: 60.204.153.158
-      port: 63045

@@ -27,10 +27,7 @@ public class ClearUnfinishedOrderTask {
         int shardTotal = XxlJobHelper.getShardTotal();
         log.debug("shardIndex="+shardIndex+",shardTotal="+shardTotal);
         // 通过chatService删除发送两天以上且已读的聊天记录
-        boolean deleteSuccess = unfinishedOrderService
+        unfinishedOrderService
                 .closeOrder(shardIndex, shardTotal, 100);
-        if (!deleteSuccess){
-            log.error("定时关单失败,请检查后端服务是否正常");
-        }
     }
 }
