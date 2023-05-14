@@ -71,6 +71,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
 
     @Override
     public R getMessage(LoginAccount loginAccount) {
+        // TODO: 2023/5/14 这个有90行的函数要是最后有时间多一定要拆 然后优化
         List<MessageListItem> list = new ArrayList<>();
         User currUser = userServiceClient.getUserByAccountUsername(
                 loginAccount.getUsername()

@@ -90,7 +90,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
             );
 
     @Override
-    @Transactional(rollbackFor = Exception.class) // TODO 多线程下的事务控制
+    @Transactional(rollbackFor = Exception.class)
     public R addCarpooling(AddCarpoolingDto addCarpoolingDto, LoginAccount loginAccount) {
         // 从loginAccount中获取driverId addCarpoolingDto中获取其他信息
         Driver driver = driverServiceClient.getDriverByAccountUsername(

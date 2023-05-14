@@ -163,6 +163,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             else
                 return R.error(ResponseCodeEnum.SERVER_ERROR, "数据库更新用户信息失败");
         } else {
+            // driver表中查询是否存在该用户 如果存在则删除
+            Driver driver = driverMapper.selectOne(
+                    new LambdaQueryWrapper<Driver>()
+                            .eq(Driver::getDriverId, user.getId()));
+            if (driver != null) {
+                driverMapper.deleteById(driver);
+            }
             if (userUpdate)
                 return R.ok("用户信息更新成功");
             else
@@ -174,6 +181,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public R deleteAccount(LoginAccount loginAccount) {
+        if (loginAccount == null){
+            return R.error(ResponseCodeEnum.FORBIDDEN, "当前用户未登录");
+        }
         User user = this.getOne(
                 new LambdaQueryWrapper<User>()
                         .eq(User::getUsername, loginAccount.getUsername()));

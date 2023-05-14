@@ -87,7 +87,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         // 调用支付宝接口 可能alt+enter没有候选项，需要自己写import
         AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
 
-        // TODO nacos配置的回调地址暂时配的是单体网关地址 最后肯定要用nginx做负载均衡
         request.setNotifyUrl(config.getProperty("alipay.notify-url"));
         request.setReturnUrl(config.getProperty("alipay.return-url"));
 

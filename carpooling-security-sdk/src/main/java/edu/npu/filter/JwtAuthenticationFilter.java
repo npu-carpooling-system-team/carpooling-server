@@ -55,7 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try (
                 InputStream resourceAsStream =
                         JwtAuthenticationFilter.class
-                                .getResourceAsStream("/security-whitelist.properties");
+                                .getResourceAsStream("/security-whitelist.properties")
         ) {
             Properties properties = new Properties();
             properties.load(resourceAsStream);

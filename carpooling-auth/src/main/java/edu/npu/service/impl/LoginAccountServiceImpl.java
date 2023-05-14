@@ -249,7 +249,6 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
                                 .eq(User::getAlipayId, alipayIdResponse.getUserId()));
                 if (user == null){
                     log.error("支付宝ID: {} 未绑定用户", alipayIdResponse.getUserId());
-                    // TODO 更换为前端异常回调地址
                     return "redirect:https://carpooling-client.wangminan.me/#/oauth/alipay/failure";
                 }
                 // 查b -10询LoginAccount
