@@ -94,15 +94,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 user.setAlipayId(alipayIdResponse.getUserId());
                 // 没有参数 也可以加 但建议前端缓存环境变量
                 return this.updateById(user) ?
-                        "redirect:http://localhost:7070/#/bind/alipay/success" :
-                        "redirect:http://localhost:7070/#/bind/alipay/failure";
+                    "redirect:" +
+                        "https://carpooling-client.wangminan.me" +
+                            "/#/main/mybind-alipay/success?token=" + token :
+                    "redirect:" +
+                        "https://carpooling-client.wangminan.me" +
+                            "/#/main/mybind-alipay/failure?token=" + token;
             } else {
                 log.error("调用获取支付宝ID接口失败, resp: {}", alipayIdResponse);
             }
         } else {
             log.error("调用获取支付宝AK接口失败, resp: {}", tokenResponse);
         }
-        return "redirect:http://localhost:7070/#/bind/alipay/failure";
+        return "redirect:https://carpooling-client.wangminan.me/#/main/mybind-alipay/failure";
     }
 
     @Override

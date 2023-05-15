@@ -77,6 +77,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         //白名单放行
         for (String url : whitelist) {
             if (pathMatcher.match(url, requestUrl)) {
+                log.info("已放行:url-{},requestUrl:{}", url, requestUrl);
                 filterChain.doFilter(request, response);
                 return;
             }

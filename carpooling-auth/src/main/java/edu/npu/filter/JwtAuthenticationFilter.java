@@ -14,6 +14,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,11 +22,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Map;
+import java.io.InputStream;
+import java.util.*;
 
 import static edu.npu.common.RedisConstants.*;
 
@@ -35,11 +38,29 @@ import static edu.npu.common.RedisConstants.*;
  */
 @Component
 @RequiredArgsConstructor // 作用于类，用于生成包含 final 和 @NonNull 注解的成员变量的构造方法 自动执行构造器注入
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    private final UserDetailsService userDetailsService;
+    //白名单
+    private static List<String> whitelist = null;
+
+    static {
+        //加载白名单
+        try (
+                InputStream resourceAsStream =
+                        JwtAuthenticationFilter.class
+                                .getResourceAsStream("/security-whitelist.properties")
+        ) {
+            Properties properties = new Properties();
+            properties.load(resourceAsStream);
+            Set<String> strings = properties.stringPropertyNames();
+            whitelist = new ArrayList<>(strings);
+        } catch (Exception e) {
+            log.error("加载/security-whitelist.properties出错:{}", e.getMessage());
+        }
+    }
 
     @Resource
     private ObjectMapper objectMapper;
@@ -53,6 +74,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
+        String requestUrl = request.getRequestURI();
+        AntPathMatcher pathMatcher = new AntPathMatcher();
+        //白名单放行
+        for (String url : whitelist) {
+            if (pathMatcher.match(url, requestUrl)) {
+                log.info("已放行:url-{},requestUrl:{}", url, requestUrl);
+                filterChain.doFilter(request, response);
+                return;
+            }
+        }
         // 如果有token 解析
         final String authHeader = getJwtFromRequest(request);
         final String username;
@@ -109,9 +140,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     filterChain.doFilter(request, response);
                 }
             }
+        } else {
+            filterChain.doFilter(request, response);
         }
-        // 该模块没有需要鉴权的接口
-        filterChain.doFilter(request, response);
     }
 
     private void constructExpireResp(HttpServletResponse response,
