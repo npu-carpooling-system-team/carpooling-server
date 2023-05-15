@@ -38,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -96,12 +97,24 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         Driver driver = driverServiceClient.getDriverByAccountUsername(
                 loginAccount.getUsername()
         );
+        // 预校验
+        // 1. 驾照类型为C1或C2,最多只能搭载6人
         if((driver.getDriversLicenseType().equals("C1") ||
                 driver.getDriversLicenseType().equals("C2")) &&
                 addCarpoolingDto.totalPassengerNo() > 6
         ){
             return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
                     "不允许新增行程,您的驾照类型为C1或C2,最多只能搭载6人");
+        }
+        // 2. addCarPoolingDto中的出发时间不能早于当前时间
+        if (addCarpoolingDto.departureTime().before(new Date())) {
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
+                    "不允许新增行程,出发时间不能早于当前时间");
+        }
+        // 3. addCarpoolingDto中的出发时间不能晚于到达时间
+        if (addCarpoolingDto.departureTime().after(addCarpoolingDto.arriveTime())) {
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
+                    "不允许新增行程,出发时间不能晚于到达时间");
         }
         Carpooling carpooling = new Carpooling();
         BeanUtils.copyProperties(addCarpoolingDto, carpooling);
@@ -334,15 +347,18 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
             boolQueryBuilder.must(QueryBuilders.matchAllQuery());
         }
         // 2.时间
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Date departureTime = pageQueryDto.getDepartureTime();
         if (departureTime != null) {
+            String departureTimeStr = sdf.format(departureTime);
             boolQueryBuilder.must(QueryBuilders.rangeQuery("departureTime")
-                    .gte(departureTime));
+                    .gte(departureTimeStr));
         }
         Date arriveTime = pageQueryDto.getArriveTime();
         if (arriveTime != null) {
+            String arriveTimeStr = sdf.format(arriveTime);
             boolQueryBuilder.must(QueryBuilders.rangeQuery("arriveTime")
-                    .lte(arriveTime));
+                    .lte(arriveTimeStr));
         }
         return boolQueryBuilder;
     }
