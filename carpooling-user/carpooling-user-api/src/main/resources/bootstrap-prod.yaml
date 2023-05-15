@@ -25,9 +25,3 @@ spring:
           - data-id: redis-config-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
-
-# 设置日志打印级别
-logging:
-  level:
-    root: info
-    edu.npu.filter: debug
