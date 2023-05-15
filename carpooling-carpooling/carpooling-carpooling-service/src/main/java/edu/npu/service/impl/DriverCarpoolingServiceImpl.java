@@ -291,7 +291,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         boolQueryBuilder.must(QueryBuilders.termQuery("driverId", driverId));
         // 拼装 排序时事件从近到远
         searchRequest.source().query(boolQueryBuilder).sort(
-                SortBuilders.fieldSort("departureTime").order(SortOrder.DESC)
+                SortBuilders.fieldSort("departureTime").order(SortOrder.ASC)
         );
     }
 
@@ -320,7 +320,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(pageQueryDto);
         // 拼装
         searchRequest.source().query(boolQueryBuilder).sort(
-                SortBuilders.fieldSort("departureTime").order(SortOrder.DESC)
+                SortBuilders.fieldSort("departureTime").order(SortOrder.ASC)
         );
     }
 

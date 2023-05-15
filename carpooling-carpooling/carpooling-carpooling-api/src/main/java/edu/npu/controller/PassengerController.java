@@ -7,6 +7,7 @@ import edu.npu.service.PassengerCarpoolingService;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -35,10 +36,10 @@ public class PassengerController {
         PageQueryDto pageQueryDto = new PageQueryDto();
         pageQueryDto.setPageNum(Integer.parseInt(pageNum));
         pageQueryDto.setPageSize(Integer.parseInt(pageSize));
-        if (query != null) {
+        if (StringUtils.hasText(query)) {
             pageQueryDto.setQuery(query);
         }
-        if (departureTime != null) {
+        if (StringUtils.hasText(departureTime)) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
             try {
                 pageQueryDto.setDepartureTime(simpleDateFormat.parse(departureTime));
@@ -47,7 +48,7 @@ public class PassengerController {
                 CarpoolingException.cast(CarpoolingError.PARAMS_ERROR, "时间转换错误");
             }
         }
-        if (arriveTime != null) {
+        if (StringUtils.hasText(arriveTime)) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
             try {
                 pageQueryDto.setArriveTime(simpleDateFormat.parse(arriveTime));

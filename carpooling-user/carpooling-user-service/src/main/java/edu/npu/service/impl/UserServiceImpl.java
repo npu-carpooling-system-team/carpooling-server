@@ -96,10 +96,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 return this.updateById(user) ?
                     "redirect:" +
                         "https://carpooling-client.wangminan.me" +
-                            "/#/main/mybind-alipay/success?token=" + token :
+                            "/#/main/my/bind-alipay/success?token=" + token :
                     "redirect:" +
                         "https://carpooling-client.wangminan.me" +
-                            "/#/main/mybind-alipay/failure?token=" + token;
+                            "/#/main/my/bind-alipay/failure?token=" + token;
             } else {
                 log.error("调用获取支付宝ID接口失败, resp: {}", alipayIdResponse);
             }

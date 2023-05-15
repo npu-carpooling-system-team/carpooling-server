@@ -11,6 +11,7 @@ import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,11 +40,11 @@ public class DriverController {
         PageQueryDto pageQueryDto = new PageQueryDto();
         pageQueryDto.setPageNum(pageNum);
         pageQueryDto.setPageSize(pageSize);
-        if (query != null) {
+        if (StringUtils.hasText(query)) {
             pageQueryDto.setQuery(query);
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        if (departureTime != null) {
+        if (StringUtils.hasText(departureTime)) {
             // 传入的时间格式为yyyy-MM-dd HH:mm 用SimpleDateFormat转换为Date
             try {
                 Date date = format.parse(departureTime);
@@ -53,7 +54,7 @@ public class DriverController {
                 CarpoolingException.cast(CarpoolingError.PARAMS_ERROR, "时间转换错误");
             }
         }
-        if (arriveTime != null) {
+        if (StringUtils.hasText(arriveTime)) {
             try {
                 Date date = format.parse(arriveTime);
                 pageQueryDto.setArriveTime(date);
