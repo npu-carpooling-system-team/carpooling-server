@@ -91,7 +91,7 @@ services:
       - "63051:63050"
       - "63056:63056"
     environment:
-      - JAVA_OPTS=-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dxxl.job.executor.ip=60.204.153.158 -Dxxl.job.executor.ip=63056
+      - JAVA_OPTS=-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dxxl.job.executor.ip=60.204.153.158 -Dxxl.job.executor.port=63056
   payment_1:
     container_name: payment_1
     restart: always

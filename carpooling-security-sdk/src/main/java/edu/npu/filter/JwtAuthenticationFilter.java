@@ -72,6 +72,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
+        log.debug(request.getRequestURI());
         String requestUrl = request.getRequestURI();
         AntPathMatcher pathMatcher = new AntPathMatcher();
         //白名单放行
