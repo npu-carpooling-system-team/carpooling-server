@@ -14,7 +14,7 @@ public class RedisConstants {
 
     public static final String TOKEN_KEY_PREFIX = "token:";
 
-    public static final Long TOKEN_EXPIRE_TTL = 18000000L;
+    public static final Long TOKEN_EXPIRE_TTL = 180000000L;
 
     public static final String HASH_TOKEN_KEY = "token";
 

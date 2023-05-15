@@ -17,6 +17,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Date;
 
 import static edu.npu.common.EsConstants.CARPOOLING_INDEX;
 
@@ -39,6 +40,11 @@ public class PassengerCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper
     // 在这个位置仅返回行程的基础数据 在进入详情页面时执行二次请求。二次请求的过程可以走两级搜索的模式
     @Override
     public R getCarpoolingList(PageQueryDto pageQueryDto) {
+        // 处理pageQueryDto 如果出发时间早于等于当前时间则设定其为当前时间
+        if (pageQueryDto.getDepartureTime() == null ||
+                pageQueryDto.getDepartureTime().before(new Date())) {
+            pageQueryDto.setDepartureTime(new Date());
+        }
         // 需要从ES中检索数据 同时注意分页 我们这种数据量较小的情况可以使用from-size方式
         try {
             // 1.准备Request
