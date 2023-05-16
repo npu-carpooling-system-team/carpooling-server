@@ -1,8 +1,6 @@
 package edu.npu.util;
 
 import cn.hutool.core.util.BooleanUtil;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.npu.common.UnCachedOperationEnum;
@@ -46,7 +44,9 @@ public class RedisClient {
     private ObjectMapper objectMapper;
 
     private boolean tryLock(String key) {
-        Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", 10, TimeUnit.SECONDS);
+        Boolean flag =
+                stringRedisTemplate.opsForValue()
+                        .setIfAbsent(key, "1", 10, TimeUnit.SECONDS);
         return BooleanUtil.isTrue(flag);
     }
 
@@ -94,8 +94,19 @@ public class RedisClient {
             return null;
         }
         // 4.命中，需要先把json反序列化为对象
-        RedisData redisData = JSONUtil.toBean(json, RedisData.class);
-        R r = JSONUtil.toBean((JSONObject) redisData.data(), type);
+        RedisData redisData;
+        R r;
+        try {
+            redisData = objectMapper.readValue(json, RedisData.class);
+            // 这样转出来的redisData的data是一个linkedHashMap 需要把这玩意转成type的对象
+            // 先试json的办法 不行就反射
+            r = objectMapper.readValue(
+                    objectMapper.writeValueAsString(redisData.data()),
+                    type
+            );
+        } catch (JsonProcessingException e) {
+            throw new CarpoolingException(e.getMessage());
+        }
         LocalDateTime expireTime = redisData.expireTime();
         // 5.判断是否过期
         if(expireTime.isAfter(LocalDateTime.now())) {
