@@ -2,6 +2,7 @@ package edu.npu.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import edu.npu.common.OrderStatusEnum;
 import edu.npu.entity.Carpooling;
 import edu.npu.entity.LoginAccount;
 import edu.npu.entity.Order;
@@ -15,10 +16,7 @@ import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author : [wangminan]
@@ -46,13 +44,7 @@ public class UserGeneralServiceImpl extends ServiceImpl<OrderMapper, Order>
         for (Order order : orders){
             Carpooling carpooling = carpoolingServiceClient
                     .getCarpoolingById(order.getCarpoolingId());
-            OrderDetailVo orderDetailVo = new OrderDetailVo(
-                    order,
-                    carpooling.getDeparturePoint(),
-                    carpooling.getArrivePoint(),
-                    carpooling.getDepartureTime(),
-                    carpooling.getArriveTime()
-            );
+            OrderDetailVo orderDetailVo = formOrder(carpooling, order);
             orderDetailVos.add(orderDetailVo);
         }
         Map<String, Object> result = new HashMap<>();
@@ -65,39 +57,26 @@ public class UserGeneralServiceImpl extends ServiceImpl<OrderMapper, Order>
         Order order = getById(orderId);
         Carpooling carpooling = carpoolingServiceClient
                 .getCarpoolingById(order.getCarpoolingId());
-        OrderDetailVo orderDetailVo = new OrderDetailVo(
-                order,
-                carpooling.getDeparturePoint(),
-                carpooling.getArrivePoint(),
-                carpooling.getDepartureTime(),
-                carpooling.getArriveTime()
-        );
+        OrderDetailVo orderDetailVo = formOrder(carpooling, order);
         Map<String, Object> result = new HashMap<>();
         result.put("result", orderDetailVo);
         return R.ok(result);
     }
 
-    @Override
-    public R getStatusEnum() {
-        Map<Integer,String> statusEnum = new HashMap<>();
-        /*
-            '-1': '订单强制结束',
-			'1': '预约申请中',
-			'2': '预约成功',
-			'3': '用户已取消预约',
-			'4': '用户确认发车',
-			'5': '用户确认到达',
-			'6': '用户未支付',
-			'0': '订单正常结束'
-         */
-        statusEnum.put(-1, "订单强制结束");
-        statusEnum.put(1, "预约申请中");
-        statusEnum.put(2, "预约成功");
-        statusEnum.put(3, "用户已取消预约");
-        statusEnum.put(4, "用户确认发车");
-        statusEnum.put(5, "用户确认到达");
-        statusEnum.put(6, "用户未支付");
-        statusEnum.put(0, "订单正常结束");
-        return R.ok().put("statusEnum", statusEnum);
+    private OrderDetailVo formOrder(Carpooling carpooling, Order order){
+        return OrderDetailVo.builder()
+                .departurePoint(carpooling.getDeparturePoint())
+                .arrivePoint(carpooling.getArrivePoint())
+                .departureTime(carpooling.getDepartureTime())
+                .arriveTime(carpooling.getArriveTime())
+                .status(Objects.requireNonNull(
+                        OrderStatusEnum.fromValue(order.getStatus())).name())
+                .id(order.getId())
+                .carpoolingId(order.getCarpoolingId())
+                .score(order.getScore())
+                .passengerId(order.getPassengerId())
+                .createTime(order.getCreateTime())
+                .updateTime(order.getUpdateTime())
+                .build();
     }
 }
