@@ -13,12 +13,12 @@ import java.util.List;
  * @description 远程调用carpooling-api服务
  */
 @FeignClient(value = "carpooling-api",
-        path = "/carpooling",
+        path = "/carpooling/remote",
         fallbackFactory = CarpoolingServiceClientFallbackFactory.class)
 public interface CarpoolingServiceClient {
     @GetMapping("/{id}")
-    Carpooling getCarpoolingById(@PathVariable("id") Long id);
+    Carpooling getCarpoolingById(@PathVariable(value = "id") Long id);
 
     @GetMapping("/getList/{driverId}")
-    List<Carpooling> getCarpoolingListByDriverId(@PathVariable("driverId") Long driverId);
+    List<Carpooling> getCarpoolingListByDriverId(@PathVariable(value = "driverId") Long driverId);
 }

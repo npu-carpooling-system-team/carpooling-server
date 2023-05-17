@@ -26,8 +26,8 @@ public class CarpoolingController {
      * @param id 拼车行程ID
      * @return 返回拼车行程信息
      */
-    @GetMapping("/{id}")
-    public Carpooling getCarpoolingById(@PathVariable Long id) {
+    @GetMapping("/remote/{id}")
+    public Carpooling getCarpoolingById(@PathVariable(value = "id") Long id) {
         return carpoolingService.getFromCache(id);
     }
 
@@ -36,8 +36,9 @@ public class CarpoolingController {
         return R.ok().put("carpooling",carpoolingService.getFromCache(id));
     }
 
-    @GetMapping("/getList/{driverId}")
-    public List<Carpooling> getCarpoolingListByDriverId(@PathVariable("driverId") Long driverId){
+    @GetMapping("/remote/getList/{driverId}")
+    public List<Carpooling> getCarpoolingListByDriverId(
+            @PathVariable(value = "driverId") Long driverId){
         return carpoolingService.list(
                 new LambdaQueryWrapper<Carpooling>()
                         .eq(Carpooling::getDriverId, driverId)

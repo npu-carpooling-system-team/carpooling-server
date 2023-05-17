@@ -13,7 +13,7 @@ import java.util.List;
  * @description 远程调用user模块获取driver信息的feignClient
  */
 @FeignClient(value = "user-api",
-        path = "/user",
+        path = "/user/remote",
         fallbackFactory = DriverServiceClientFallbackFactory.class)
 public interface DriverServiceClient {
     @GetMapping("/getDriver")

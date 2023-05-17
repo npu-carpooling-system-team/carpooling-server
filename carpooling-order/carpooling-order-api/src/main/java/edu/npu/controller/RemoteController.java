@@ -15,6 +15,7 @@ import java.util.List;
  * @description : [远程发信Controller 内部方法 仅供feign调用]
  */
 @RestController
+@RequestMapping("/remote")
 public class RemoteController {
 
     @Resource
@@ -32,9 +33,9 @@ public class RemoteController {
         noticeMailService.sendNoticeMailToUser(carpoolingId, subject, content);
     }
 
-    @PutMapping("/{carpoolingId}")
+    @PutMapping
     public void forceCloseOrderByCarpoolingId(
-            @PathVariable(value = "carpoolingId") Long carpoolingId) {
+            @RequestParam(value = "carpoolingId") Long carpoolingId) {
         List<Order> orderList = orderMapper.selectList(
                 new LambdaQueryWrapper<Order>()
                         .eq(Order::getCarpoolingId, carpoolingId)

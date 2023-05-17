@@ -13,7 +13,7 @@ import java.util.List;
  * @description : [远程调用user-api服务]
  */
 @FeignClient(value = "user-api",
-        path = "/user",
+        path = "/user/remote",
         fallbackFactory = UserServiceClientFallbackFactory.class)
 public interface UserServiceClient {
 

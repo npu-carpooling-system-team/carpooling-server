@@ -13,7 +13,7 @@ import java.util.List;
  * @description 远程调用carpooling-api服务
  */
 @FeignClient(value = "carpooling-api",
-        path = "/carpooling",
+        path = "/carpooling/remote",
         fallbackFactory = CarpoolingServiceClientFallbackFactory.class)
 public interface CarpoolingServiceClient {
     @GetMapping("/{id}")

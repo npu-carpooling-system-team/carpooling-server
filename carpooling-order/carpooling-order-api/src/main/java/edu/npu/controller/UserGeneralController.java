@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @description : [乘客通用Controller]
  */
 @RestController
-@RequestMapping("/order")
+@RequestMapping("/passenger/order")
 public class UserGeneralController {
 
     @Resource
