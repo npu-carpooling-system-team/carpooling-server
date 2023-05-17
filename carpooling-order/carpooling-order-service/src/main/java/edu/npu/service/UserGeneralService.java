@@ -9,4 +9,6 @@ public interface UserGeneralService extends IService<Order> {
     R getOrderList(LoginAccount loginAccount);
 
     R getOrderById(Long orderId);
+
+    R getStatusEnum();
 }

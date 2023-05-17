@@ -30,4 +30,9 @@ public class UserGeneralController {
     public R getOrder(@RequestParam("orderId") Long orderId) {
         return userGeneralService.getOrderById(orderId);
     }
+
+    @GetMapping("/statusEnum")
+    public R getStatusEnum(){
+        return userGeneralService.getStatusEnum();
+    }
 }

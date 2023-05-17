@@ -76,4 +76,28 @@ public class UserGeneralServiceImpl extends ServiceImpl<OrderMapper, Order>
         result.put("result", orderDetailVo);
         return R.ok(result);
     }
+
+    @Override
+    public R getStatusEnum() {
+        Map<Integer,String> statusEnum = new HashMap<>();
+        /*
+            '-1': '订单强制结束',
+			'1': '预约申请中',
+			'2': '预约成功',
+			'3': '用户已取消预约',
+			'4': '用户确认发车',
+			'5': '用户确认到达',
+			'6': '用户未支付',
+			'0': '订单正常结束'
+         */
+        statusEnum.put(-1, "订单强制结束");
+        statusEnum.put(1, "预约申请中");
+        statusEnum.put(2, "预约成功");
+        statusEnum.put(3, "用户已取消预约");
+        statusEnum.put(4, "用户确认发车");
+        statusEnum.put(5, "用户确认到达");
+        statusEnum.put(6, "用户未支付");
+        statusEnum.put(0, "订单正常结束");
+        return R.ok().put("statusEnum", statusEnum);
+    }
 }
