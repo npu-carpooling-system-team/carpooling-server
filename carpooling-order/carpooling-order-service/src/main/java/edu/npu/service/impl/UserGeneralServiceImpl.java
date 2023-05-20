@@ -37,13 +37,14 @@ public class UserGeneralServiceImpl extends ServiceImpl<OrderMapper, Order>
         User user = userServiceClient
                 .getUserByAccountUsername(loginAccount.getUsername());
         List<Order> orders = list(
-                new LambdaQueryWrapper<Order>()
-                        .eq(Order::getPassengerId, user.getId())
+            new LambdaQueryWrapper<Order>()
+                .eq(Order::getPassengerId, user.getId())
+                .orderByDesc(Order::getUpdateTime)
         );
         List<OrderDetailVo> orderDetailVos = new ArrayList<>();
         for (Order order : orders){
             Carpooling carpooling = carpoolingServiceClient
-                    .getCarpoolingById(order.getCarpoolingId());
+                .getCarpoolingById(order.getCarpoolingId());
             OrderDetailVo orderDetailVo = formOrder(carpooling, order);
             orderDetailVos.add(orderDetailVo);
         }
@@ -65,18 +66,19 @@ public class UserGeneralServiceImpl extends ServiceImpl<OrderMapper, Order>
 
     private OrderDetailVo formOrder(Carpooling carpooling, Order order){
         return OrderDetailVo.builder()
-                .departurePoint(carpooling.getDeparturePoint())
-                .arrivePoint(carpooling.getArrivePoint())
-                .departureTime(carpooling.getDepartureTime())
-                .arriveTime(carpooling.getArriveTime())
-                .status(Objects.requireNonNull(
-                        OrderStatusEnum.fromValue(order.getStatus())).name())
-                .id(order.getId())
-                .carpoolingId(order.getCarpoolingId())
-                .score(order.getScore())
-                .passengerId(order.getPassengerId())
-                .createTime(order.getCreateTime())
-                .updateTime(order.getUpdateTime())
-                .build();
+            .departurePoint(carpooling.getDeparturePoint())
+            .arrivePoint(carpooling.getArrivePoint())
+            .departureTime(carpooling.getDepartureTime())
+            .arriveTime(carpooling.getArriveTime())
+            .status(Objects.requireNonNull(
+                    OrderStatusEnum.fromValue(order.getStatus())).name())
+            .id(order.getId())
+            .carpoolingId(order.getCarpoolingId())
+            .score(order.getScore())
+            .passengerId(order.getPassengerId())
+            .createTime(order.getCreateTime())
+            .updateTime(order.getUpdateTime())
+            .passingPoint(carpooling.getPassingPoint())
+            .build();
     }
 }

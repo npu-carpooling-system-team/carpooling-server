@@ -1,9 +1,7 @@
 package edu.npu.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import edu.npu.entity.Order;
 import lombok.Builder;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
@@ -27,6 +25,7 @@ public record OrderDetailVo(
         Integer score,
         String departurePoint,
         String arrivePoint,
+        String passingPoint,
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
         Date departureTime,
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
