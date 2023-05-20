@@ -6,6 +6,7 @@ import edu.npu.service.AdminGeneralService;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,6 +31,7 @@ public class AdminGeneralController {
 
     private static Date begin, end;
 
+    @PreAuthorize("hasAuthority('Admin')")
     @GetMapping("/carpooling/list")
     public R getCarpoolingListForDriver(
             @RequestParam(value = "beginTime", required = false) String beginTime,
@@ -39,6 +41,7 @@ public class AdminGeneralController {
         return adminGeneralService.genOrderList(begin, end, driverId);
     }
 
+    @PreAuthorize("hasAuthority('Admin')")
     @GetMapping("/prize/list")
     public R genPrizeList(
             @RequestParam(value = "beginTime", required = false) String beginTime,

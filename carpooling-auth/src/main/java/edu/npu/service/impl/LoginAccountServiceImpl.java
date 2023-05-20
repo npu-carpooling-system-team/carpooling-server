@@ -1,5 +1,6 @@
 package edu.npu.service.impl;
 
+import cn.hutool.core.util.BooleanUtil;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.request.AlipaySystemOauthTokenRequest;
@@ -45,6 +46,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -180,10 +183,33 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
                                     loginAccount.getAuthorities()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
             Map<String, Object> result = genTokenWithLoginAccount(userLoginDto.username(), loginAccount);
+            addUserLoginCount();
             return R.ok(result);
         } catch (Exception e) {
             log.error("登录失败", e);
             return R.error(ResponseCodeEnum.SERVER_ERROR, "登录失败");
+        }
+    }
+
+    private void addUserLoginCount() {
+        String currentDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        boolean isLock = tryLock();
+        if (isLock){
+            String currentLoginCount = stringRedisTemplate.opsForValue().get(
+                    LOGIN_COUNT_KEY_PREFIX + currentDate);
+            if (StringUtils.hasText(currentLoginCount)){
+                stringRedisTemplate.opsForValue().set(
+                        LOGIN_COUNT_KEY_PREFIX + currentDate,
+                        String.valueOf(Integer.parseInt(currentLoginCount) + 1),
+                        LOGIN_COUNT_EXPIRE_TIME,
+                        TimeUnit.SECONDS);
+            } else {
+                stringRedisTemplate.opsForValue().set(
+                        LOGIN_COUNT_KEY_PREFIX + currentDate,
+                        "1",
+                        LOGIN_COUNT_EXPIRE_TIME,
+                        TimeUnit.SECONDS);
+            }
         }
     }
 
@@ -212,6 +238,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
                                 loginAccount.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
                 Map<String, Object> result = genTokenWithLoginAccount(phone, loginAccount);
+                addUserLoginCount();
                 return R.ok(result);
             } else {
                 return R.error(ResponseCodeEnum.FORBIDDEN, "验证码错误");
@@ -263,6 +290,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
                 Map<String, Object> result = genTokenWithLoginAccount(
                         user.getUsername(), loginAccount);
                 log.info("支付宝登录成功, 用户: {}, token: {}", user.getUsername(), result.get(TOKEN));
+                addUserLoginCount();
                 // 拼接URL
                 return "redirect:https://carpooling-client.wangminan.me/#/oauth/alipay/success" +
                         "?token=" +
@@ -323,6 +351,16 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
         return result;
     }
 
+    private boolean tryLock() {
+        Boolean flag =
+                stringRedisTemplate.opsForValue()
+                        .setIfAbsent(LOGIN_LOCK_KEY, "1", 1, TimeUnit.SECONDS);
+        return BooleanUtil.isTrue(flag);
+    }
+
+    private void unlock(String key) {
+        stringRedisTemplate.delete(key);
+    }
 }
 
 
