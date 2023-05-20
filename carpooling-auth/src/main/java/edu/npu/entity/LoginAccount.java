@@ -1,6 +1,7 @@
 package edu.npu.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +39,7 @@ public class LoginAccount implements Serializable, UserDetails {
      * 用户登录时唯一编号
      */
     @TableId(type = IdType.AUTO)
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long id;
 
     /**
@@ -52,7 +54,9 @@ public class LoginAccount implements Serializable, UserDetails {
 
     /**
      * 用户角色:司机/乘客,管理员
+     * 以String形式序列化到前端
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private int role;
 
     /**

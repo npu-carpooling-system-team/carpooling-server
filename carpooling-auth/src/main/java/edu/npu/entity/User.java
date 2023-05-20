@@ -1,6 +1,7 @@
 package edu.npu.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serial;
@@ -17,11 +18,13 @@ public class User implements Serializable {
      * 用户唯一编号
      */
     @TableId(type = IdType.AUTO)
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long id;
 
     /**
      * 用户手机号
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private String username;
 
     /**
