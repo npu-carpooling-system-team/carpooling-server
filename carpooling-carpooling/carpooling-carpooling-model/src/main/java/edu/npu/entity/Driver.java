@@ -75,5 +75,5 @@ public class Driver implements Serializable {
     private Integer isDeleted;
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 15213L;
 }

@@ -2,6 +2,9 @@ package edu.npu.util;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;
+import com.aliyun.oss.model.CannedAccessControlList;
+import com.aliyun.oss.model.LifecycleRule;
+import com.aliyun.oss.model.SetBucketLifecycleRequest;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,14 +23,19 @@ public class OssUtil {
     @Resource
     private OSS oss;
 
-    @Value("var.aliyun-oss.endpoint")
-    private String endPoint;
+    @Value("${var.aliyun-oss.endpoint}")
+    private static String endPoint;
 
     @Value("${var.aliyun-oss.bucketName}")
-    private String bucketName;
+    private static String bucketName;
 
     @Value("${var.aliyun-oss.baseDir}")
-    private String baseDir;
+    private static String baseDir;
+
+    @Value("${var.aliyun-oss.baseUrl}")
+    private static String baseUrl;
+
+    // 阿里云的声明周期操作不支持根据访问时间删除文件 所以只能手动删除
 
     /**
      * 向Oss上传文件
@@ -37,10 +45,13 @@ public class OssUtil {
     public String uploadFile(File file){
         try{
             oss.putObject(bucketName,baseDir+file.getName(),file);
-            return endPoint + "/" + bucketName + "/" + baseDir + file.getName();
+            // 设定文件访问权限为公共读
+            oss.setObjectAcl(bucketName,
+                    baseDir+file.getName(),
+                    CannedAccessControlList.PublicRead);
+            return baseUrl + "/"  + baseDir + file.getName();
         } catch (OSSException e){
             log.error("文件:{}上传失败",file.getName());
-            
         }
         return null;
     }
@@ -56,7 +67,6 @@ public class OssUtil {
             return true;
         } catch (OSSException e){
             log.error("文件:{}删除失败",fileName);
-            
         }
         return false;
     }

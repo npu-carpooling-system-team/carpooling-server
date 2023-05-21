@@ -63,7 +63,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         // 将消息通知存入Redis 我的想法是用一个set
         // key值为 communication:notice:{toUserId} value在set中加入fromUserId
         stringRedisTemplate.opsForSet().add(
-                RedisConstants.MESSAGE_NOTICE_KEY + toUserId,
+                RedisConstants.MESSAGE_NOTICE_KEY_PREFIX + toUserId,
                 fromUserId.toString()
         );
         return R.ok();
@@ -116,21 +116,21 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
             boolean hasNewMessage = false;
             // 从Redis中删除通知信息
             if (Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(
-                    RedisConstants.MESSAGE_NOTICE_KEY + currUser.getId(),
+                    RedisConstants.MESSAGE_NOTICE_KEY_PREFIX + currUser.getId(),
                     fromUserId.toString()
             ))) {
 
                 stringRedisTemplate.opsForSet().remove(
-                        RedisConstants.MESSAGE_NOTICE_KEY + currUser.getId(),
+                        RedisConstants.MESSAGE_NOTICE_KEY_PREFIX + currUser.getId(),
                         fromUserId.toString()
                 );
                 hasNewMessage = true;
             } else if (Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(
-                    RedisConstants.MESSAGE_NOTICE_KEY + currUser.getId(),
+                    RedisConstants.MESSAGE_NOTICE_KEY_PREFIX + currUser.getId(),
                     toUserId.toString()
             ))) {
                 stringRedisTemplate.opsForSet().remove(
-                        RedisConstants.MESSAGE_NOTICE_KEY + currUser.getId(),
+                        RedisConstants.MESSAGE_NOTICE_KEY_PREFIX + currUser.getId(),
                         toUserId.toString()
                 );
                 hasNewMessage = true;
@@ -176,7 +176,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         for (Chat chat : chats) {
             // 判断是否已读 如果存在键值对则说明未读 跳过
             if (Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(
-                    RedisConstants.MESSAGE_NOTICE_KEY + chat.getToUserId(),
+                    RedisConstants.MESSAGE_NOTICE_KEY_PREFIX + chat.getToUserId(),
                     chat.getFromUserId().toString()
             ))) {
                 continue;

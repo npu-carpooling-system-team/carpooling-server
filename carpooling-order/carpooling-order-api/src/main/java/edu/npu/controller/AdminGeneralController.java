@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,8 +21,9 @@ import java.util.Date;
  * @author : [wangminan]
  * @description : [管理员处理拼车情况的业务类]
  */
-@RestController("/admin")
+@RestController
 @Slf4j
+@RequestMapping("/admin")
 public class AdminGeneralController {
 
     @Resource
@@ -64,6 +66,13 @@ public class AdminGeneralController {
             } else {
                 // 给end一个很晚很晚的时间当初始值 2099-12-31
                 end = new Date(FINAL_DATE);
+            }
+            // 校验日期是否合法
+            if (begin.getTime() > end.getTime()){
+                log.error("日期转换错误");
+
+                CarpoolingException.cast(
+                        CarpoolingError.PARAMS_ERROR, "您给出的日期无法被正确转换");
             }
         } catch (ParseException e) {
             log.error("日期转换错误");

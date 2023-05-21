@@ -36,3 +36,7 @@ xxl:
   job:
     executor:
       port: 63055
+
+logging:
+  level:
+    edu.npu.feignClient: debug

@@ -30,11 +30,13 @@ public class Chat implements Serializable {
     /**
      * 发送用户的ID,与user表id列一致
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long fromUserId;
 
     /**
      * 接收用户的id,与user表中的一致
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long toUserId;
 
     /**
@@ -50,5 +52,5 @@ public class Chat implements Serializable {
 
     @Serial
     @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 635214L;
 }

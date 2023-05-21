@@ -5,6 +5,7 @@ import edu.npu.feignClient.fallback.CarpoolingServiceClientFallbackFactory;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -16,9 +17,9 @@ import java.util.List;
         path = "/carpooling/remote",
         fallbackFactory = CarpoolingServiceClientFallbackFactory.class)
 public interface CarpoolingServiceClient {
-    @GetMapping("/{id}")
-    Carpooling getCarpoolingById(@PathVariable(value = "id") Long id);
+    @GetMapping
+    Carpooling getCarpoolingById(@RequestParam(value = "id") Long id);
 
-    @GetMapping("/getList/{driverId}")
-    List<Carpooling> getCarpoolingListByDriverId(@PathVariable(value = "driverId") Long driverId);
+    @GetMapping("/getList")
+    List<Carpooling> getCarpoolingListByDriverId(@RequestParam(value = "driverId") Long driverId);
 }

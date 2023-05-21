@@ -31,7 +31,7 @@ public class RemoteController {
      */
     @GetMapping("/getDriver")
     public Driver getDriverByAccountUsername(
-            @RequestParam("username") String username
+            @RequestParam(value = "username") String username
     ) {
         return userService.getDriverByAccountUsername(username);
     }
@@ -53,7 +53,7 @@ public class RemoteController {
      */
     @GetMapping("/getUserByUsername")
     public User getUserWithAccountUsername(
-            @RequestParam("username") String username
+            @RequestParam(value = "username") String username
     ) {
         return userService.getOne(
                 new LambdaQueryWrapper<User>()
@@ -67,7 +67,7 @@ public class RemoteController {
      */
     @GetMapping("/getUserById")
     public User getUserById(
-            @RequestParam("id") Long id
+            @RequestParam(value = "id") Long id
     ) {
         return userService.getById(id);
     }

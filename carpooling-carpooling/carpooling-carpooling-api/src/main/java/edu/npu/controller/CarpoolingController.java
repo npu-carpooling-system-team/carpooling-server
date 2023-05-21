@@ -7,6 +7,7 @@ import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -26,8 +27,8 @@ public class CarpoolingController {
      * @param id 拼车行程ID
      * @return 返回拼车行程信息
      */
-    @GetMapping("/remote/{id}")
-    public Carpooling getCarpoolingById(@PathVariable(value = "id") Long id) {
+    @GetMapping("/remote")
+    public Carpooling getCarpoolingById(@RequestParam(value = "id") Long id) {
         return carpoolingService.getFromCache(id);
     }
 
@@ -36,9 +37,9 @@ public class CarpoolingController {
         return R.ok().put("carpooling",carpoolingService.getFromCache(id));
     }
 
-    @GetMapping("/remote/getList/{driverId}")
+    @GetMapping("/remote/getList")
     public List<Carpooling> getCarpoolingListByDriverId(
-            @PathVariable(value = "driverId") Long driverId){
+            @RequestParam(value = "driverId") Long driverId){
         return carpoolingService.list(
                 new LambdaQueryWrapper<Carpooling>()
                         .eq(Carpooling::getDriverId, driverId)

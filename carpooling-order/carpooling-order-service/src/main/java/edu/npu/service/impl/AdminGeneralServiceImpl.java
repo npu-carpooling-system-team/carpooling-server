@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -29,6 +30,10 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static edu.npu.common.RedisConstants.UPLOAD_FILE_KEY_EXPIRE;
+import static edu.npu.common.RedisConstants.UPLOAD_FILE_KEY_PREFIX;
 
 /**
  * @author : [wangminan]
@@ -50,6 +55,9 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
     @Resource
     private CarpoolingServiceClient carpoolingServiceClient;
 
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
     @Override
     public R genOrderList(Date begin, Date end, Long driverId) {
         // 根据条件查询已经完成的订单 生成EXCEL 存储到OSS
@@ -57,7 +65,6 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
         if (driverId == null) {
             orders = orderMapper.selectList(
                     new LambdaQueryWrapper<Order>()
-                            .eq(Order::getStatus, OrderStatusEnum.ORDER_NORMAL_CLOSED)
                             .ge(Order::getUpdateTime, begin)
                             .le(Order::getUpdateTime, end)
             );
@@ -65,16 +72,19 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
             // 加上司机条件
             // 远程调用user-api获取司机
             User user = userServiceClient.getUserById(driverId);
-            Driver driver = userServiceClient.getDriverByAccountUsername(user.getUsername());
+            Driver driver =
+                    userServiceClient.getDriverByAccountUsername(user.getUsername());
             // 先通过司机ID查询出所有的订单ID
             List<Carpooling> carpoolingList =
                     carpoolingServiceClient.getCarpoolingListByDriverId(driver.getId());
             orders = orderMapper.selectList(
                     new LambdaQueryWrapper<Order>()
-                            .eq(Order::getStatus, OrderStatusEnum.ORDER_NORMAL_CLOSED)
                             .ge(Order::getUpdateTime, begin)
                             .le(Order::getUpdateTime, end)
-                            .in(Order::getCarpoolingId, carpoolingList)
+                            .in(Order::getCarpoolingId,
+                                    (Object) carpoolingList.stream()
+                                            .map(Carpooling::getId).toArray(Long[]::new))
+
             );
         }
         // 生成当天的订单到excel表格中
@@ -118,13 +128,16 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
             }
             File file = File.createTempFile(
                     "订单列表_" +
-                            SimpleDateFormat.getDateTimeInstance().format(new Date()),
+                            new SimpleDateFormat("yyyy-MM-dd").format(begin) +
+                            "_" +
+                            new SimpleDateFormat("yyyy-MM-dd").format(end),
                     ".xlsx"
             );
             String url = uploadFileToOss(workbook, file);
             return StringUtils.hasText(url) ?
                     R.ok().put("result", url) : R.error("生成订单列表失败");
         } catch (IOException e) {
+            e.printStackTrace();
             throw new CarpoolingException("生成订单列表失败");
         }
     }
@@ -141,15 +154,10 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
             Sheet sheet = workbook.createSheet("嘉奖列表");
             // 创建表头
             sheet.createRow(0).createCell(0).setCellValue("RANK");
-            sheet.createRow(0).createCell(1).setCellValue("司机_用户ID");
-            sheet.createRow(0).createCell(2).setCellValue("司机_手机号码");
-            sheet.createRow(0).createCell(3).setCellValue("司机_姓名");
-            sheet.createRow(0).createCell(4).setCellValue("总计完成订单数");
-            File file = File.createTempFile(
-                    "嘉奖列表_" +
-                            SimpleDateFormat.getDateTimeInstance().format(new Date()),
-                    ".xlsx"
-            );
+            sheet.getRow(0).createCell(1).setCellValue("司机_用户ID");
+            sheet.getRow(0).createCell(2).setCellValue("司机_手机号码");
+            sheet.getRow(0).createCell(3).setCellValue("司机_姓名");
+            sheet.getRow(0).createCell(4).setCellValue("总计完成订单数");
             int rank = 0;
             // 开始插入数据
             for (PrizeVo prize : prizes) {
@@ -168,6 +176,13 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
                 sheet.getRow(lastRowNum + 1).createCell(4)
                         .setCellValue(prize.totalOrders());
             }
+            File file = File.createTempFile(
+                    "嘉奖列表_" +
+                            new SimpleDateFormat("yyyy-MM-dd").format(begin) +
+                            "_" +
+                            new SimpleDateFormat("yyyy-MM-dd").format(end),
+                    ".xlsx"
+            );
             String url = uploadFileToOss(workbook, file);
             return StringUtils.hasText(url) ?
                     R.ok().put("result", url) : R.error("生成订单列表失败");
@@ -187,8 +202,21 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
             if (StringUtils.hasText(url)) {
                 // 上传成功
                 log.info("上传到OSS成功,file:{}", file.getName());
+                String currentDate =
+                        new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+                stringRedisTemplate.opsForList()
+                        .leftPush(
+                            UPLOAD_FILE_KEY_PREFIX + currentDate,
+                            file.getName()
+                        );
+                stringRedisTemplate.expire(
+                        UPLOAD_FILE_KEY_PREFIX + currentDate,
+                        UPLOAD_FILE_KEY_EXPIRE,
+                        TimeUnit.SECONDS
+                );
                 // 删除临时文件
-                file.deleteOnExit();
+                boolean delete = file.delete();
+                log.info("删除临时文件结果:{}", delete);
                 return url;
             } else {
                 log.error("上传到OSS失败,file:{}", file.getName());

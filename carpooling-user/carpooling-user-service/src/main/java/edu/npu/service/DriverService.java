@@ -2,6 +2,7 @@ package edu.npu.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import edu.npu.entity.Driver;
+import edu.npu.vo.R;
 
 /**
 * @author wangminan
@@ -10,4 +11,5 @@ import edu.npu.entity.Driver;
 */
 public interface DriverService extends IService<Driver> {
 
+    R genDriverSimpleList();
 }

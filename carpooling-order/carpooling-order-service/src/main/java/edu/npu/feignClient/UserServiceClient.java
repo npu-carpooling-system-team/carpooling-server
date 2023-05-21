@@ -22,19 +22,19 @@ public interface UserServiceClient {
 
     @GetMapping("/getUserByUsername")
     User getUserByAccountUsername(
-            @RequestParam("username") String username
+            @RequestParam(value = "username") String username
     );
 
     @GetMapping("/getUserById")
     User getUserById(
             // feign的要求是一定要写value 不能省略
             // 好吧 不要用path来传参数 会变得不幸
-            @RequestParam("id") Long id
+            @RequestParam(value = "id") Long id
     );
 
     @GetMapping("/getDriver")
     Driver getDriverByAccountUsername(
-            @RequestParam("username") String username
+            @RequestParam(value = "username") String username
     );
 
     @GetMapping("/getDriverList")

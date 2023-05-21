@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -20,21 +22,25 @@ public class Order implements Serializable {
      * 订单唯一编号
      */
     @TableId(type = IdType.AUTO)
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long id;
 
     /**
      * 拼车行程id,与carpooling表的id字段对应
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long carpoolingId;
 
     /**
      * 乘客用户编号,与user表中id一致
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long passengerId;
 
     /**
      * 订单当前状态,0未开始
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Integer status;
 
     /**
@@ -52,6 +58,7 @@ public class Order implements Serializable {
      */
     private Integer score;
 
+    @Serial
     @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 23456L;
 }
