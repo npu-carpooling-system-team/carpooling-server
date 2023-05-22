@@ -22,7 +22,6 @@ public enum OrderStatusEnum {
 
     // 行车阶段
     DRIVING_USER_CONFIRM_DEPARTURE(4),
-    DRIVING_USER_CONFIRM_ARRIVED(5),
 
     // 到达阶段
     ARRIVED_USER_UNPAID(6),

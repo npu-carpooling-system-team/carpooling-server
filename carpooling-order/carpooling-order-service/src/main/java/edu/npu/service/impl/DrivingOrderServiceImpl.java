@@ -81,7 +81,7 @@ public class DrivingOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             order.setStatus(OrderStatusEnum.ORDER_NORMAL_CLOSED.getValue());
             updateSuccess = true;
         } else {
-            order.setStatus(OrderStatusEnum.DRIVING_USER_CONFIRM_ARRIVED.getValue());
+            order.setStatus(OrderStatusEnum.ARRIVED_USER_UNPAID.getValue());
             updateSuccess = updateById(order);
 
             // 乘客确认到达后，将该订单加入未完成订单表

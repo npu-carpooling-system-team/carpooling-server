@@ -117,7 +117,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         }
         if (response.isSuccess()) {
             log.info(CALL_SUCCESS + response.getBody());
-            // 更新order表中status到已支付 等待回调 TODO
+            // 更新order表中status到已支付 等待回调
             Order order = getById(orderId);
             order.setStatus(OrderStatusEnum.PAID_WAITING_CALLBACK.getValue());
             updateById(order);

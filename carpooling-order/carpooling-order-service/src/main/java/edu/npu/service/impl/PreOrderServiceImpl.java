@@ -54,6 +54,11 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
     public R passengerApply(Long carpoolingId, LoginAccount loginAccount) {
         User currentUser = userServiceClient
                 .getUserByAccountUsername(loginAccount.getUsername());
+        Carpooling carpooling =
+                carpoolingServiceClient.getCarpoolingById(carpoolingId);
+        if (carpooling.getDriverId().equals(currentUser.getId())) {
+            return R.error(ResponseCodeEnum.CREATION_ERROR, "不允许向自己的行程下订单");
+        }
         // mybatisplus的save方法在抽风 我自己写一个
         boolean saveOrder =
                 orderMapper.save(carpoolingId, currentUser.getId(),
