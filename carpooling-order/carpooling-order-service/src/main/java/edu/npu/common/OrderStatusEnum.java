@@ -27,7 +27,10 @@ public enum OrderStatusEnum {
     // 到达阶段
     ARRIVED_USER_UNPAID(6),
 
-    // 订单正常结束 乘客支付完成后自动进入评分并结束订单
+    // 乘客已支付 等待回调
+    PAID_WAITING_CALLBACK(7),
+
+    // 订单正常结束 乘客支付完成且收到回调后自动进入评分并结束订单
     ORDER_NORMAL_CLOSED(0);
 
     private final int value;

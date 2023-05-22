@@ -84,6 +84,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
     @Override
     public String startPay(Long orderId, LoginAccount loginAccount) {
         log.debug("收到来自用户:{}对订单:{}的缴费请求,开始处理", loginAccount.getId(), orderId);
+
         // 调用支付宝接口 可能alt+enter没有候选项，需要自己写import
         AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
 
@@ -116,6 +117,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         }
         if (response.isSuccess()) {
             log.info(CALL_SUCCESS + response.getBody());
+            // 更新order表中status到已支付 等待回调 TODO
+            Order order = getById(orderId);
+            order.setStatus(OrderStatusEnum.PAID_WAITING_CALLBACK.getValue());
+            updateById(order);
         } else {
             log.info(CALL_FAILURE + response.getCode() + " " + response.getMsg());
             CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR, "创建支付交易失败,对方接口异常");
@@ -207,7 +212,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
 
 
             if (order == null) {
-                log.error("支付宝给出的订单不存在，订单号：{}", outTradeNo);
+                log.error("支付宝给出的订单不存在，订单号:{}", outTradeNo);
                 return result;
             }
 
@@ -219,7 +224,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
                                             .getCarpoolingById(order.getCarpoolingId());
             int originalPrice = thisCarpooling.getPrice();
             if ( originalPrice !=totalAmountInt){
-                log.error("订单金额不一致，订单号：{}，订单金额：{}，支付宝金额：{}",
+                log.error("订单金额不一致，订单号:{}，订单金额:{}，支付宝金额:{}",
                         outTradeNo, originalPrice, totalAmountInt);
                 return result;
             }
@@ -227,7 +232,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             // seller_id
             String sellerId = notifyParams.get("seller_id");
             if (!sellerId.equals(config.getProperty("alipay.seller-id"))) {
-                log.error("商家pid不一致，订单号：{}，商家id：{}，支付宝商家id：{}",
+                log.error("商家pid不一致，订单号:{}，商家id:{}，支付宝商家id:{}",
                         outTradeNo, sellerId, config.getProperty("alipay.seller-id"));
                 return result;
             }
@@ -235,7 +240,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             // app_id
             String appId = notifyParams.get("app_id");
             if (!appId.equals(config.getProperty("alipay.app-id"))) {
-                log.error("app-id不一致，订单号：{}，商家app-id：{}，支付宝app-id：{}",
+                log.error("app-id不一致，订单号:{}，商家app-id:{}，支付宝app-id:{}",
                         outTradeNo, appId, config.getProperty("alipay.app-id"));
                 return result;
             }
@@ -244,13 +249,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             // 前者支持退款 后者不支持退款
             String tradeStatus = notifyParams.get("trade_status");
             if (!tradeStatus.equals(AlipayTradeState.SUCCESS.getType())) {
-                log.error("交易状态不正确，订单号：{}，交易状态：{}", outTradeNo, tradeStatus);
+                log.error("交易状态不正确，订单号:{}，交易状态:{}", outTradeNo, tradeStatus);
                 return result;
             }
 
             // 加锁,并发控制,防止重复回调
             /*
-             * 注意：锁与@Transaction注解不兼容，如果使用了@Transaction注解，那么锁将失效
+             * 注意:锁与@Transaction注解不兼容，如果使用了@Transaction注解，那么锁将失效
              * 1.如果使用了@Transaction注解，那么在方法执行完后，会自动提交事务，此时锁将自动释放
              * 2.如果没有使用@Transaction注解，那么在方法执行完后，需要手动提交事务，此时锁才会释放
              * 参考 https://blog.csdn.net/fal1230/article/details/113392123
@@ -262,7 +267,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
                     // 接口调用的幂等性
                     int orderStatus = order.getStatus();
                     if (orderStatus != OrderStatusEnum.ARRIVED_USER_UNPAID.getValue()) {
-                        log.info("非到达订单，订单状态将不会被更新，订单号：{}", outTradeNo);
+                        log.info("非到达订单，订单状态将不会被更新，订单号:{}", outTradeNo);
                         // if外将重新发送success
                     }
 
@@ -276,7 +281,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
                                     .eq(UnfinishedOrder::getOrderId, order.getId())
                     );
                     // 记录支付日志
-                    log.info("订单号：{} 回调已收到，参数正常，状态已更新", outTradeNo);
+                    log.info("订单号:{} 回调已收到，参数正常，状态已更新", outTradeNo);
                 } finally {
                     lock.unlock();
                 }
@@ -287,7 +292,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
                     () -> {
                         boolean transfer = transfer(order);
                         if (!transfer){
-                            log.error("向司机转账失败，订单号：{}", order.getId());
+                            log.error("向司机转账失败，订单号:{}", order.getId());
                         }
                     }
             );
@@ -339,27 +344,27 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             AlipayFundTransUniTransferResponse response =
                     alipayClient.execute(request);
             if (response.isSuccess()){
-                log.info("向司机转账成功，订单号：{}", order.getId());
+                log.info("向司机转账成功，订单号:{}", order.getId());
                 return true;
             } else {
                 if(response.getStatus().equals("SYSTEM_ERROR")){
                     // 需要发送验证请求
                     boolean transfer = confirmTransfer(outBizNo);
                     if (transfer){
-                        log.info("向司机转账成功，订单号：{}", order.getId());
+                        log.info("向司机转账成功，订单号:{}", order.getId());
                         return true;
                     }
                 } else {
-                    log.error("向司机转账失败，订单号：{}，错误码：{}，错误信息：{}",
+                    log.error("向司机转账失败，订单号:{}，错误码:{}，错误信息:{}",
                             order.getId(), response.getCode(), response.getMsg());
                     return false;
                 }
             }
         } catch (AlipayApiException e) {
-            log.error("向司机转账失败，订单号：{}，错误信息：{}", order.getId(), e.getMessage());
+            log.error("向司机转账失败，订单号:{}，错误信息:{}", order.getId(), e.getMessage());
             return false;
         }
-        log.error("向司机转账失败，订单号：{}", order.getId());
+        log.error("向司机转账失败，订单号:{}", order.getId());
         return false;
     }
 
@@ -376,20 +381,20 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             AlipayFundTransCommonQueryResponse response = alipayClient.execute(request);
             if (response.isSuccess()){
                 if (response.getStatus().equals("SUCCESS")){
-                    log.info("转账成功，订单号：{}", outBizNo);
+                    log.info("转账成功，订单号:{}", outBizNo);
                     return true;
                 } else {
-                    log.error("转账失败，订单号：{}，错误码：{}，错误信息：{}",
+                    log.error("转账失败，订单号:{}，错误码:{}，错误信息:{}",
                             outBizNo, response.getCode(), response.getMsg());
                     return false;
                 }
             } else {
-                log.error("转账失败，订单号：{}，错误码：{}，错误信息：{}",
+                log.error("转账失败，订单号:{}，错误码:{}，错误信息:{}",
                         outBizNo, response.getCode(), response.getMsg());
                 return false;
             }
         } catch (AlipayApiException e) {
-            log.error("转账失败，订单号：{}，错误信息：{}", outBizNo, e.getMessage());
+            log.error("转账失败，订单号:{}，错误信息:{}", outBizNo, e.getMessage());
             return false;
         }
     }

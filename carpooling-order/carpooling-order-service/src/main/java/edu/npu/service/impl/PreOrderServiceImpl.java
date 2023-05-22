@@ -59,7 +59,7 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
                 orderMapper.save(carpoolingId, currentUser.getId(),
                         OrderStatusEnum.PRE_ORDER_REQUEST_SUBMITTED.getValue());
         if (!saveOrder) {
-            log.error("乘客申请拼车失败，乘客id：{}，拼车id：{}",
+            log.error("乘客申请拼车失败，乘客id:{}，拼车id:{}",
                     currentUser.getId(), carpoolingId);
             return R.error("乘客申请拼车失败,MySQL数据库异常");
         }
@@ -117,14 +117,14 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
                         passOrderDto.pass() ? "您的拼车申请已通过" : "您的拼车申请未通过"
                 );
                 if (!sendMail){
-                    log.error("发送邮件失败，乘客id：{}，订单id：{}",
+                    log.error("发送邮件失败，乘客id:{}，订单id:{}",
                             order.getPassengerId(), order.getId());
                 }
             }
         });
         boolean save = updateById(order);
         if (!save) {
-            log.error("司机确认乘客拼车申请失败，订单id：{}，乘客id：{}",
+            log.error("司机确认乘客拼车申请失败，订单id:{}，乘客id:{}",
                     passOrderDto.orderId(), order.getPassengerId());
             return R.error("司机确认乘客拼车申请失败,MySQL数据库异常");
         }

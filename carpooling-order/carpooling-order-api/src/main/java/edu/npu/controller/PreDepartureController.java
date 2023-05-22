@@ -16,9 +16,9 @@ public class PreDepartureController {
 
     /**
      * 乘客取消订单
-     * @param orderId
-     * @param loginAccount
-     * @return
+     * @param orderId 订单ID
+     * @param loginAccount 登录用户
+     * @return R
      */
     @DeleteMapping("/passenger/carpooling/{orderId}")
     public R userCancelOrder(@PathVariable("orderId") Long orderId,
@@ -28,8 +28,8 @@ public class PreDepartureController {
 
     /**
      * 查询用户半年内取消订单的次数
-     * @param loginAccount
-     * @return
+     * @param loginAccount 登录用户
+     * @return R
      */
     @GetMapping("/passenger/carpooling/canceltimes")
     public R searchUserCancelTimes(@AuthenticationPrincipal LoginAccount loginAccount) {

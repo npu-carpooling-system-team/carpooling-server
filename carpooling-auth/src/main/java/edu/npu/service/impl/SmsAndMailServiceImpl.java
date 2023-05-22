@@ -58,7 +58,7 @@ public class SmsAndMailServiceImpl implements SmsAndMailService {
                 TimeUnit.SECONDS
         );
         String subject = "西工大拼车平台验证码";
-        String content = "您的验证码为：" + checkCode + "，请在5分钟内输入以验证您的邮箱。";
+        String content = "您的验证码为:" + checkCode + "，请在5分钟内输入以验证您的邮箱。";
         boolean sendMailSuccess = sendMailUtil.sendMail(to, subject, content);
         return sendMailSuccess ? R.ok() : R.error(ResponseCodeEnum.SERVER_ERROR, "邮件发送失败");
     }

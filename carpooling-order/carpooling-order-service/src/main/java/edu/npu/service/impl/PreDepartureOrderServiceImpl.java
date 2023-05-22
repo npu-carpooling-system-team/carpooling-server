@@ -47,12 +47,12 @@ public class PreDepartureOrderServiceImpl extends ServiceImpl<OrderMapper, Order
         Order order = getById(orderId);
         boolean updateSuccess;
         if (order == null) {
-            log.error("按orderID查询订单失败，订单不存在，订单id：{}", orderId);
+            log.error("按orderID查询订单失败，订单不存在，订单id:{}", orderId);
             return R.error("订单不存在");
         }
         User user = userServiceClient.getUserByAccountUsername(loginAccount.getUsername());
         if (user == null) {
-            log.error("按username查询用户失败，用户不存在，username：{}",loginAccount.getUsername());
+            log.error("按username查询用户失败，用户不存在，username:{}",loginAccount.getUsername());
             return R.error("用户不存在");
         }
         Long userCancelTimes = this.searchUserCancelTimes(user);
@@ -73,11 +73,11 @@ public class PreDepartureOrderServiceImpl extends ServiceImpl<OrderMapper, Order
                 if (1 == insertSuccess) {
                     return R.ok("用户半年内取消订单超过3次，强制支付");
                 } else {
-                    log.error("用户取消订单失败，表unfinished_order插入失败,订单id：{}", orderId);
+                    log.error("用户取消订单失败，表unfinished_order插入失败,订单id:{}", orderId);
                     return R.error("用户取消订单失败，表unfinished_order插入失败");
                 }
             } else {
-                log.error("用户取消订单失败，表order更新失败,订单id：{}", orderId);
+                log.error("用户取消订单失败，表order更新失败,订单id:{}", orderId);
                 return R.error("用户取消订单失败，表order更新失败");
             }
         }
@@ -87,7 +87,7 @@ public class PreDepartureOrderServiceImpl extends ServiceImpl<OrderMapper, Order
         if (updateSuccess) {
             return R.ok("用户取消订单成功");
         } else {
-            log.error("用户取消订单失败，表order更新失败,订单id：{}",orderId);
+            log.error("用户取消订单失败，表order更新失败,订单id:{}",orderId);
             return R.error("用户取消订单失败，表order更新失败");
         }
 
@@ -97,7 +97,7 @@ public class PreDepartureOrderServiceImpl extends ServiceImpl<OrderMapper, Order
     public R searchUserCancelTimes(LoginAccount loginAccount) {
         User user = userServiceClient.getUserByAccountUsername(loginAccount.getUsername());
         if (user == null) {
-            log.error("按username查询用户失败，用户不存在，username：{}",loginAccount.getUsername());
+            log.error("按username查询用户失败，用户不存在，username:{}",loginAccount.getUsername());
             return R.error("用户不存在");
         }
         Long userCancelTimes = this.searchUserCancelTimes(user);

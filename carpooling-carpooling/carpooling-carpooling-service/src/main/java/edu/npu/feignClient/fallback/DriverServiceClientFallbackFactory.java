@@ -23,13 +23,13 @@ public class DriverServiceClientFallbackFactory implements FallbackFactory<Drive
         return new DriverServiceClient() {
             @Override
             public Driver getDriverByAccountUsername(String username) {
-                log.error("feignClient熔断器触发，原因：{}", cause.getMessage());
+                log.error("feignClient熔断器触发，原因:{}", cause.getMessage());
                 return new Driver();
             }
 
             @Override
             public List<Driver> getDriverList() {
-                log.error("feignClient熔断器触发，原因：{}", cause.getMessage());
+                log.error("feignClient熔断器触发，原因:{}", cause.getMessage());
                 return new ArrayList<>();
             }
         };
