@@ -3,8 +3,6 @@ package edu.npu.util;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.CannedAccessControlList;
-import com.aliyun.oss.model.LifecycleRule;
-import com.aliyun.oss.model.SetBucketLifecycleRequest;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,16 +22,16 @@ public class OssUtil {
     private OSS oss;
 
     @Value("${var.aliyun-oss.endpoint}")
-    private static String endPoint;
+    private String endPoint;
 
     @Value("${var.aliyun-oss.bucketName}")
-    private static String bucketName;
+    private String bucketName;
 
     @Value("${var.aliyun-oss.baseDir}")
-    private static String baseDir;
+    private String baseDir;
 
     @Value("${var.aliyun-oss.baseUrl}")
-    private static String baseUrl;
+    private String baseUrl;
 
     // 阿里云的声明周期操作不支持根据访问时间删除文件 所以只能手动删除
 

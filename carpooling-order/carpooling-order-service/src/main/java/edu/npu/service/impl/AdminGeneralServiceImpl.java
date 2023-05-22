@@ -1,7 +1,6 @@
 package edu.npu.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import edu.npu.common.OrderStatusEnum;
 import edu.npu.entity.Carpooling;
 import edu.npu.entity.Driver;
 import edu.npu.entity.Order;
@@ -30,9 +29,10 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static edu.npu.common.RedisConstants.UPLOAD_FILE_KEY_EXPIRE;
 import static edu.npu.common.RedisConstants.UPLOAD_FILE_KEY_PREFIX;
 
 /**
@@ -57,6 +57,12 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    private static final ExecutorService cachedThreadPool =
+            Executors.newFixedThreadPool(
+                    // 获取系统核数
+                    Runtime.getRuntime().availableProcessors()
+            );
 
     @Override
     public R genOrderList(Date begin, Date end, Long driverId) {
@@ -202,21 +208,23 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
             if (StringUtils.hasText(url)) {
                 // 上传成功
                 log.info("上传到OSS成功,file:{}", file.getName());
-                String currentDate =
-                        new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-                stringRedisTemplate.opsForList()
-                        .leftPush(
+                cachedThreadPool.execute(() -> {
+                    String currentDate =
+                            new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+                    stringRedisTemplate.opsForList()
+                            .leftPush(
+                                    UPLOAD_FILE_KEY_PREFIX + currentDate,
+                                    file.getName()
+                            );
+                    // 设置整个LIST的过期时间
+                    stringRedisTemplate.expire(
                             UPLOAD_FILE_KEY_PREFIX + currentDate,
-                            file.getName()
-                        );
-                stringRedisTemplate.expire(
-                        UPLOAD_FILE_KEY_PREFIX + currentDate,
-                        UPLOAD_FILE_KEY_EXPIRE,
-                        TimeUnit.SECONDS
-                );
+                            2,
+                            TimeUnit.DAYS
+                    );
+                });
                 // 删除临时文件
-                boolean delete = file.delete();
-                log.info("删除临时文件结果:{}", delete);
+                file.deleteOnExit();
                 return url;
             } else {
                 log.error("上传到OSS失败,file:{}", file.getName());
