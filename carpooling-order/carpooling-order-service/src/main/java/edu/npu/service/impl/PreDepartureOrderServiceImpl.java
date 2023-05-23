@@ -49,13 +49,18 @@ public class PreDepartureOrderServiceImpl extends ServiceImpl<OrderMapper, Order
         if (order == null) {
             log.error("按orderID查询订单失败，订单不存在，订单id:{}", orderId);
             return R.error("订单不存在");
+        } else if (!order.getStatus().equals(
+                OrderStatusEnum.PRE_ORDER_REQUEST_PASSED.getValue()
+        )) {
+            log.error("订单状态不正确，订单id:{}", orderId);
+            return R.error("当前状态下不允许取消订单");
         }
         User user = userServiceClient.getUserByAccountUsername(loginAccount.getUsername());
         if (user == null) {
             log.error("按username查询用户失败，用户不存在，username:{}",loginAccount.getUsername());
             return R.error("用户不存在");
         }
-        Long userCancelTimes = this.searchUserCancelTimes(user);
+        Long userCancelTimes = this.getUserCancelTimes(user);
 
         if (userCancelTimes >= 3) {
 
@@ -100,13 +105,13 @@ public class PreDepartureOrderServiceImpl extends ServiceImpl<OrderMapper, Order
             log.error("按username查询用户失败，用户不存在，username:{}",loginAccount.getUsername());
             return R.error("用户不存在");
         }
-        Long userCancelTimes = this.searchUserCancelTimes(user);
+        Long userCancelTimes = this.getUserCancelTimes(user);
         Map<String, Object> result = new HashMap<>();
         result.put("userCancelTimes", userCancelTimes);
         return R.ok(result);
     }
 
-    public Long searchUserCancelTimes(User user) {
+    public Long getUserCancelTimes(User user) {
         Long userCancelTimes = 0L;
         try {
             Calendar cal = Calendar.getInstance();

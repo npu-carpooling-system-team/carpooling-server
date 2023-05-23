@@ -14,6 +14,7 @@ import edu.npu.mapper.OrderMapper;
 import edu.npu.service.FinishedOrderService;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @description : [一句话描述该类的功能]
  */
 @Service
+@Slf4j
 public class FinishedOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             implements FinishedOrderService {
 
@@ -35,32 +37,40 @@ public class FinishedOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
 
     @Override
     public R rateDriver(Long orderId, RateDto rateDto) {
+        Order order = getById(orderId);
+        if (!order.getStatus().equals(
+                OrderStatusEnum.ORDER_NORMAL_CLOSED.getValue()
+        )) {
+            log.error("订单状态不正确，订单id:{}", orderId);
+            return R.error("订单状态不正确");
+        }
+
         // 根据当前订单查询行程 -> 根据行程查询司机
         // -> 查询司机所有行程ID -> 根据行程ID查询所有订单 -> 计算平均分 -> 更新司机分数
         Carpooling carpooling = carpoolingServiceClient.getCarpoolingById(
-                getById(orderId).getCarpoolingId()
+                order.getCarpoolingId()
         );
         List<Carpooling> carpoolingList =
                 carpoolingServiceClient.getCarpoolingListByDriverId(carpooling.getDriverId());
         // 此时已完成付款 订单状态已经被置为NORMAL_CLOSED
         List<Order> orderList =
-                list(
-                        new LambdaQueryWrapper<Order>()
-                                .in(Order::getCarpoolingId, carpoolingList)
-                                .eq(Order::getStatus,
-                                        OrderStatusEnum.ORDER_NORMAL_CLOSED.getValue())
-                );
+            list(
+                new LambdaQueryWrapper<Order>()
+                    .in(Order::getCarpoolingId, carpoolingList)
+                    .eq(Order::getStatus,
+                        OrderStatusEnum.ORDER_NORMAL_CLOSED.getValue())
+            );
         // 统计总分 0分即为未评分 需要被排除
         AtomicInteger ignore = new AtomicInteger();
         // lambda表达式中的变量必须是final的或是原子的
         AtomicInteger totalRatePassenger = new AtomicInteger();
         AtomicInteger totalScore = new AtomicInteger();
-        orderList.forEach(order -> {
-            if (order.getScore() == 0) {
+        orderList.forEach(orderItem -> {
+            if (orderItem.getScore() == 0) {
                 ignore.getAndIncrement();
             } else {
                 totalRatePassenger.getAndIncrement();
-                totalScore.addAndGet(order.getScore());
+                totalScore.addAndGet(orderItem.getScore());
             }
         });
         Long newScore =

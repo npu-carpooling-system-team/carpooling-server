@@ -39,6 +39,11 @@ public class DrivingOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         if (order == null) {
             log.error("按orderID查询订单失败，orderAndUserExists，订单id:{}", orderId);
             return R.error("orderAndUserExists");
+        } else if (!order.getStatus().equals(
+                OrderStatusEnum.PRE_ORDER_REQUEST_PASSED.getValue()
+        )) {
+            log.error("乘客确认发车失败，订单状态不正确，订单id:{}", orderId);
+            return R.error("乘客确认发车失败，订单状态不正确");
         }
         User user = userServiceClient.getUserByAccountUsername(loginAccount.getUsername());
 
@@ -63,7 +68,11 @@ public class DrivingOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
 
         if (order == null) {
             log.error("按orderID查询订单失败，orderAndUserExists，订单id:{}", orderId);
-            return R.error("orderAndUserExists");
+            return R.error("订单不存在");
+        } else if (!order.getStatus().equals(
+                OrderStatusEnum.DRIVING_USER_CONFIRM_DEPARTURE.getValue())) {
+            log.error("乘客确认到达失败，订单状态不正确，订单id:{}", orderId);
+            return R.error("乘客确认到达失败，订单状态不正确");
         }
         User user = userServiceClient.getUserByAccountUsername(loginAccount.getUsername());
 
