@@ -4,17 +4,20 @@ import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.npu.common.ResponseCodeEnum;
+import edu.npu.common.UnCachedOperationEnum;
 import edu.npu.doc.CarpoolingDoc;
 import edu.npu.dto.AddCarpoolingDto;
 import edu.npu.dto.EditCarpoolingDto;
 import edu.npu.dto.PageQueryDto;
 import edu.npu.entity.Carpooling;
 import edu.npu.entity.Driver;
+import edu.npu.entity.FailCachedCarpooling;
 import edu.npu.entity.LoginAccount;
 import edu.npu.exception.CarpoolingException;
 import edu.npu.feignClient.DriverServiceClient;
 import edu.npu.feignClient.OrderServiceClient;
 import edu.npu.mapper.CarpoolingMapper;
+import edu.npu.mapper.FailCachedCarpoolingMapper;
 import edu.npu.service.DriverCarpoolingService;
 import edu.npu.util.RedisClient;
 import edu.npu.vo.PageResultVo;
@@ -82,13 +85,15 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     @Resource
     private RedisClient redisClient;
 
+    @Resource
+    private FailCachedCarpoolingMapper failCachedCarpoolingMapper;
 
     // 负责执行新线程上其他任务的线程池
     private static final ExecutorService cachedThreadPool =
-            Executors.newFixedThreadPool(
-                    // 获取系统核数
-                    Runtime.getRuntime().availableProcessors()
-            );
+        Executors.newFixedThreadPool(
+                // 获取系统核数
+                Runtime.getRuntime().availableProcessors()
+        );
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -133,13 +138,28 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                 if (!saveEs) {
                     log.error("直接新增拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
                             carpooling);
+                    failCachedCarpoolingMapper.insert(
+                            new FailCachedCarpooling(carpooling.getId(),
+                                    UnCachedOperationEnum.INSERT.getValue())
+                    );
                 }
-                // Redis 缓存预热
-                redisClient.setWithLogicalExpire(
-                        CACHE_CARPOOLING_KEY, carpooling.getId(),
-                        carpooling,
-                        CACHE_CARPOOLING_TTL, TimeUnit.MINUTES
-                );
+                try{
+                    // Redis 缓存预热
+                    redisClient.setWithLogicalExpire(
+                            CACHE_CARPOOLING_KEY, carpooling.getId(),
+                            carpooling,
+                            CACHE_CARPOOLING_TTL, TimeUnit.MINUTES
+                    );
+                } catch (Exception e) {
+                    log.error("直接新增拼车行程:{}失败,Redis缓存操作失败,持久化入数据库。", carpooling);
+                    // 防止重复存储
+                    if (saveEs) {
+                        failCachedCarpoolingMapper.insert(
+                                new FailCachedCarpooling(carpooling.getId(),
+                                        UnCachedOperationEnum.INSERT.getValue())
+                        );
+                    }
+                }
             }
         );
         return R.ok();
@@ -187,6 +207,26 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
             if (!saveEs) {
                 log.error("直接修改拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
                         carpooling);
+                failCachedCarpoolingMapper.insert(
+                        new FailCachedCarpooling(carpooling.getId(),
+                                UnCachedOperationEnum.UPDATE.getValue())
+                );
+            }
+            try {
+                // 更新Redis缓存
+                redisClient.setWithLogicalExpire(
+                        CACHE_CARPOOLING_KEY, carpooling.getId(),
+                        carpooling,
+                        CACHE_CARPOOLING_TTL, TimeUnit.MINUTES
+                );
+            } catch (Exception e) {
+                log.error("直接修改拼车行程:{}失败,Redis缓存操作失败,持久化入数据库。", carpooling);
+                if (saveEs) {
+                    failCachedCarpoolingMapper.insert(
+                            new FailCachedCarpooling(carpooling.getId(),
+                                    UnCachedOperationEnum.UPDATE.getValue())
+                    );
+                }
             }
             // 远程调用,发送通知邮件
             orderServiceClient
@@ -195,12 +235,6 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                         "请及时登录西工大拼车平台查看您的行程改动信息,行程编号:"
                                 + carpooling.getId()
                 );
-            // 更新Redis缓存
-            redisClient.setWithLogicalExpire(
-                    CACHE_CARPOOLING_KEY, carpooling.getId(),
-                    carpooling,
-                    CACHE_CARPOOLING_TTL, TimeUnit.MINUTES
-            );
         });
         // MySQL
         boolean saveMySQL = updateById(carpooling);
@@ -238,9 +272,23 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
             if (!removeEs) {
                 log.error("直接删除拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
                         carpooling);
+                failCachedCarpoolingMapper.insert(
+                        new FailCachedCarpooling(carpooling.getId(),
+                                UnCachedOperationEnum.DELETE.getValue())
+                );
             }
-            // 刷新Redis 删除
-            stringRedisTemplate.delete(CACHE_CARPOOLING_KEY + id);
+            try {
+                // 刷新Redis 删除
+                stringRedisTemplate.delete(CACHE_CARPOOLING_KEY + id);
+            } catch (Exception e) {
+                log.error("直接删除拼车行程:{}失败,Redis缓存操作失败,持久化入数据库。", carpooling);
+                if (removeEs) {
+                    failCachedCarpoolingMapper.insert(
+                            new FailCachedCarpooling(carpooling.getId(),
+                                    UnCachedOperationEnum.DELETE.getValue())
+                    );
+                }
+            }
             // 发送通知邮件
             orderServiceClient
                     .sendNoticeMailToUser(

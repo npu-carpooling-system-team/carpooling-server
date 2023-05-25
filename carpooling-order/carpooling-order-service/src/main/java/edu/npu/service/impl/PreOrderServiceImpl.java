@@ -154,7 +154,7 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
                 loginAccount.getUsername()
         );
         Carpooling carpooling = carpoolingServiceClient.getCarpoolingById(carpoolingId);
-        if (!carpooling.getDriverId().equals(driver.getId())) {
+        if (!carpooling.getDriverId().equals(driver.getDriverId())) {
             return R.error(ResponseCodeEnum.FORBIDDEN, "不允许访问不属于您的信息");
         }
         return null;

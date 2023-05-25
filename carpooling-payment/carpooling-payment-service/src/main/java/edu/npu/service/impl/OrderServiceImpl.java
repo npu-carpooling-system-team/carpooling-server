@@ -289,12 +289,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             result = "success";
             // 另起一个线程向司机转账
             cachedThreadPool.execute(
-                    () -> {
-                        boolean transfer = transfer(order);
-                        if (!transfer){
-                            log.error("向司机转账失败，订单号:{}", order.getId());
-                        }
+                () -> {
+                    boolean transfer = transfer(order);
+                    if (!transfer){
+                        log.error("向司机转账失败，订单号:{}", order.getId());
                     }
+                }
             );
         } else {
             log.error("支付宝异步通知验签失败");
