@@ -11,7 +11,6 @@ import edu.npu.service.DrivingOrderService;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Service;
 
 /**
@@ -29,7 +28,7 @@ public class DrivingOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
     @Resource
     private CarpoolingServiceClient carpoolingServiceClient;
 
-    @Mapper
+    @Resource
     private UnfinishedOrderMapper unfinishedOrderMapper;
 
     @Override

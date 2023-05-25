@@ -2,6 +2,7 @@ package edu.npu.controller;
 
 import edu.npu.entity.LoginAccount;
 import edu.npu.service.OrderService;
+import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,7 +29,7 @@ public class PaymentController {
      * @return R
      */
     @PostMapping("/{orderId}")
-    public String startPay(@PathVariable("orderId") Long orderId,
+    public R startPay(@PathVariable("orderId") Long orderId,
                       @AuthenticationPrincipal LoginAccount loginAccount) {
         return orderService.startPay(orderId, loginAccount);
     }

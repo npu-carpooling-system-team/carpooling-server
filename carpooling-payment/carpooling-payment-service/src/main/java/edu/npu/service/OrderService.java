@@ -3,6 +3,7 @@ package edu.npu.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import edu.npu.entity.LoginAccount;
 import edu.npu.entity.Order;
+import edu.npu.vo.R;
 
 import java.util.Map;
 
@@ -13,7 +14,7 @@ import java.util.Map;
 */
 public interface OrderService extends IService<Order> {
 
-    String startPay(Long orderId, LoginAccount loginAccount);
+    R startPay(Long orderId, LoginAccount loginAccount);
 
     String checkSignAndConfirm(Map<String, String> notifyParams);
 

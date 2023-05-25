@@ -27,6 +27,7 @@ import edu.npu.feignClient.UserServiceClient;
 import edu.npu.mapper.OrderMapper;
 import edu.npu.mapper.UnfinishedOrderMapper;
 import edu.npu.service.OrderService;
+import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
@@ -82,7 +83,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
     private final ReentrantLock lock = new ReentrantLock();
 
     @Override
-    public String startPay(Long orderId, LoginAccount loginAccount) {
+    public R startPay(Long orderId, LoginAccount loginAccount) {
         log.debug("收到来自用户:{}对订单:{}的缴费请求,开始处理", loginAccount.getId(), orderId);
 
         // 调用支付宝接口 可能alt+enter没有候选项，需要自己写import
@@ -139,7 +140,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             &out_trade_no=70501111111S001111119
             &version=1.0
          */
-        return response.getBody();
+        return R.ok().put("payUrl", response.getBody());
     }
 
     @Override
