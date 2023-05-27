@@ -103,7 +103,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 从redis中获取用户信息
                 Map<Object, Object> cachedUser = stringRedisTemplate
                         .opsForHash()
-                        .entries(TOKEN_KEY_PREFIX + username);
+                        .entries(LOGIN_ACCOUNT_KEY_PREFIX + username);
                 if (cachedUser.isEmpty() || cachedUser.get(HASH_TOKEN_KEY) == null
                         || !cachedUser.get(HASH_TOKEN_KEY).equals(authHeader)) {
                     constructExpireResp(response,

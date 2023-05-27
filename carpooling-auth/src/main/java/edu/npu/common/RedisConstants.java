@@ -12,9 +12,9 @@ public class RedisConstants {
 
     public static final Long CODE_EXPIRE_TIME = 60 * 5L;
 
-    public static final String TOKEN_KEY_PREFIX = "token:";
+    public static final String LOGIN_ACCOUNT_KEY_PREFIX = "login:account:";
 
-    public static final Long TOKEN_EXPIRE_TTL = 180000000L;
+    public static final Long LOGIN_ACCOUNT_EXPIRE_TTL = 180000000L;
 
     public static final String HASH_TOKEN_KEY = "token";
 

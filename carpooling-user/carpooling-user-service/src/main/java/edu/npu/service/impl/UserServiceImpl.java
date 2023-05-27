@@ -162,10 +162,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 BeanUtils.copyProperties(putUserInfoDto, driver);
                 driverUpdate = driverMapper.updateById(driver);
             }
-            if (userUpdate && driverUpdate == 1)
+            if (userUpdate && driverUpdate == 1) {
                 return R.ok("用户信息更新成功");
-            else
+            } else {
                 return R.error(ResponseCodeEnum.SERVER_ERROR, "数据库更新用户信息失败");
+            }
         } else {
             // driver表中查询是否存在该用户 如果存在则删除
             Driver driver = driverMapper.selectOne(
@@ -174,12 +175,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             if (driver != null) {
                 driverMapper.deleteById(driver);
             }
-            if (userUpdate)
+            if (userUpdate) {
                 return R.ok("用户信息更新成功");
-            else
+            } else {
                 return R.error(ResponseCodeEnum.SERVER_ERROR, "数据库更新用户信息失败");
+            }
         }
-
     }
 
 

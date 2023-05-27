@@ -216,7 +216,7 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
     @Override
     public R logout(LoginAccount loginAccount) {
         // 将token从redis中删除 然后返回即可
-        stringRedisTemplate.delete(RedisConstants.TOKEN_KEY_PREFIX + loginAccount.getUsername());
+        stringRedisTemplate.delete(RedisConstants.LOGIN_ACCOUNT_KEY_PREFIX + loginAccount.getUsername());
         return R.ok();
     }
 
@@ -322,15 +322,15 @@ public class LoginAccountServiceImpl extends ServiceImpl<LoginAccountMapper, Log
         // token放入redis 用一个hash结构存储token和loginAccount的json字符串形式
         try {
             stringRedisTemplate.opsForHash().put(
-                    RedisConstants.TOKEN_KEY_PREFIX + username,
+                    RedisConstants.LOGIN_ACCOUNT_KEY_PREFIX + username,
                     HASH_TOKEN_KEY, token);
             stringRedisTemplate.opsForHash().put(
-                    RedisConstants.TOKEN_KEY_PREFIX + username,
+                    RedisConstants.LOGIN_ACCOUNT_KEY_PREFIX + username,
                     HASH_LOGIN_ACCOUNT_KEY, objectMapper.writeValueAsString(loginAccount));
-            // 设置过期时间TOKEN_EXPIRE_TTL
+            // 设置过期时间LOGIN_ACCOUNT_EXPIRE_TTL
             stringRedisTemplate.expire(
-                    RedisConstants.TOKEN_KEY_PREFIX + username,
-                    TOKEN_EXPIRE_TTL,
+                    RedisConstants.LOGIN_ACCOUNT_KEY_PREFIX + username,
+                    LOGIN_ACCOUNT_EXPIRE_TTL,
                     TimeUnit.MILLISECONDS);
         } catch (JsonProcessingException e) {
             throw new CarpoolingException("loginAccount序列化失败");

@@ -96,11 +96,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.aliyun</groupId>
             <artifactId>alibabacloud-dysmsapi20170525</artifactId>
         </dependency>
