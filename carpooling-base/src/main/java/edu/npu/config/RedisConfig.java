@@ -14,7 +14,7 @@ public class RedisConfig {
     @Bean
     public LettuceClientConfigurationBuilderCustomizer customizer() {
         return clientConfigurationBuilder -> clientConfigurationBuilder
-                // 优先读slave 所有slave节点都不可用才读master
-                .readFrom(ReadFrom.REPLICA_PREFERRED);
+                // 优先读延迟最低的节点
+                .readFrom(ReadFrom.LOWEST_LATENCY);
     }
 }

@@ -24,9 +24,7 @@ public record AddCarpoolingDto(
     Integer leftPassengerNo,
     @NotNull
     String passingPoint,
-    @NotNull
-    // 大于等于0的int
-    @Pattern(regexp = "0|\\d+/g", message = "price必须为大于等于0的整数")
+    @NotNull(message = "price不能为空")
     Integer price,
     @NotNull
     Integer totalPassengerNo

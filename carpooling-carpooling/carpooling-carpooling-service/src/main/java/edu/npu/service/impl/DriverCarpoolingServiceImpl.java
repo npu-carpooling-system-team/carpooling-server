@@ -98,6 +98,9 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     @Override
     @Transactional(rollbackFor = Exception.class)
     public R addCarpooling(AddCarpoolingDto addCarpoolingDto, LoginAccount loginAccount) {
+        if (addCarpoolingDto.price() < 0) {
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED, "价格不能为负数");
+        }
         // 从loginAccount中获取driverId addCarpoolingDto中获取其他信息
         Driver driver = driverServiceClient.getDriverByAccountUsername(
                 loginAccount.getUsername()
@@ -178,6 +181,8 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         } else if (!Objects.equals(id, editCarpoolingDto.id())) {
             return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
                     "不允许更改行程,您设置的id与请求路径中的id不一致");
+        } else if (editCarpoolingDto.price() < 0) {
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED, "价格不能为负数");
         }
         // 需要同时修改MySQL和ElasticSearch
         // 从loginAccount中获取driverId addCarpoolingDto中获取其他信息
@@ -185,9 +190,9 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                 loginAccount.getUsername()
         );
         if (driver.getDriversLicenseType().startsWith("C") &&
-                editCarpoolingDto.totalPassengerNo() >= 4) {
+                editCarpoolingDto.totalPassengerNo() > 4) {
             return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
-                    "不允许更改行程,您设置的总座位数不能大于4");
+                    "不允许更改行程,您设置的总座位数不能大于等于4");
         }
         Date departureTime = editCarpoolingDto.departureTime();
         // 如果出发时间为当前时间六小时内 同时有乘客
