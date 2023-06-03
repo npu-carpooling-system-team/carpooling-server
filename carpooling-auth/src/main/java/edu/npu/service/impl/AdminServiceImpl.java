@@ -1,6 +1,5 @@
 package edu.npu.service.impl;
 
-import edu.npu.common.ResponseCodeEnum;
 import edu.npu.service.AdminService;
 import edu.npu.vo.CountUserVo;
 import edu.npu.vo.R;
@@ -35,11 +34,10 @@ public class AdminServiceImpl implements AdminService {
                     System.currentTimeMillis() - i * 24 * 60 * 60 * 1000);
         }
         // 到Redis中查询对应键值
-        String[] values = Objects.requireNonNull(
-                stringRedisTemplate.opsForValue().multiGet(List.of(keys)))
-                .toArray(new String[0]);
-        if (values.length == 0) {
-            return R.error(ResponseCodeEnum.CREATION_ERROR,"获取登录次数失败,暂无登录数据");
+        String[] values = new String[7];
+        for (int i = 0; i < 7; i++) {
+            values[i] = stringRedisTemplate.opsForValue().get(keys[i]) == null ?
+                    "0" : Objects.requireNonNull(stringRedisTemplate.opsForValue().get(keys[i]));
         }
         List<CountUserVo> countUserVoList = new ArrayList<>();
         for (int i = 0; i < 7; i++) {

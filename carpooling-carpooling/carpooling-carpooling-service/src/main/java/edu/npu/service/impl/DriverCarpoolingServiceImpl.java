@@ -289,8 +289,8 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                 log.error("直接删除拼车行程:{}失败,Redis缓存操作失败,持久化入数据库。", carpooling);
                 if (removeEs) {
                     failCachedCarpoolingMapper.insert(
-                            new FailCachedCarpooling(carpooling.getId(),
-                                    UnCachedOperationEnum.DELETE.getValue())
+                        new FailCachedCarpooling(carpooling.getId(),
+                            UnCachedOperationEnum.DELETE.getValue())
                     );
                 }
             }
