@@ -3,11 +3,9 @@ package edu.npu.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import edu.npu.common.OrderStatusEnum;
-import edu.npu.entity.LoginAccount;
-import edu.npu.entity.Order;
-import edu.npu.entity.UnfinishedOrder;
-import edu.npu.entity.User;
+import edu.npu.entity.*;
 import edu.npu.exception.CarpoolingException;
+import edu.npu.feignClient.CarpoolingServiceClient;
 import edu.npu.feignClient.UserServiceClient;
 import edu.npu.mapper.OrderMapper;
 import edu.npu.mapper.UnfinishedOrderMapper;
@@ -16,6 +14,7 @@ import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -42,19 +41,26 @@ public class PreDepartureOrderServiceImpl extends ServiceImpl<OrderMapper, Order
     @Resource
     private UserServiceClient userServiceClient;
 
+    @Resource
+    private CarpoolingServiceClient carpoolingServiceClient;
+
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public R userCancelOrder(Long orderId, LoginAccount loginAccount) {
         Order order = getById(orderId);
         boolean updateSuccess;
+        // 数据预校验
         if (order == null) {
             log.error("按orderID查询订单失败，订单不存在，订单id:{}", orderId);
             return R.error("订单不存在");
         } else if (!order.getStatus().equals(
-                OrderStatusEnum.PRE_ORDER_REQUEST_PASSED.getValue()
-        )) {
+                OrderStatusEnum.PRE_ORDER_REQUEST_PASSED.getValue())
+        ) {
             log.error("订单状态不正确，订单id:{}", orderId);
             return R.error("当前状态下不允许取消订单");
         }
+
+        // 获取用户取消订单次数
         User user = userServiceClient.getUserByAccountUsername(loginAccount.getUsername());
         if (user == null) {
             log.error("按username查询用户失败，用户不存在，username:{}",loginAccount.getUsername());
@@ -62,32 +68,44 @@ public class PreDepartureOrderServiceImpl extends ServiceImpl<OrderMapper, Order
         }
         Long userCancelTimes = this.getUserCancelTimes(user);
 
-        if (userCancelTimes >= 3) {
+        try {
+            // 多余3次则强制支付
+            if (userCancelTimes >= 3) {
 
-            order.setStatus(OrderStatusEnum.ARRIVED_USER_UNPAID.getValue());
-            updateSuccess = updateById(order);
+                order.setStatus(OrderStatusEnum.ARRIVED_USER_UNPAID.getValue());
+                updateSuccess = updateById(order);
 
-            if (updateSuccess) {
+                if (updateSuccess) {
 
-                UnfinishedOrder unfinishedOrder = new UnfinishedOrder();
-                unfinishedOrder.setOrderId(orderId);
-                unfinishedOrder.setCarpoolingId(order.getCarpoolingId());
-                unfinishedOrder.setPassengerId(order.getPassengerId());
+                    UnfinishedOrder unfinishedOrder = new UnfinishedOrder();
+                    unfinishedOrder.setOrderId(orderId);
+                    unfinishedOrder.setCarpoolingId(order.getCarpoolingId());
+                    unfinishedOrder.setPassengerId(order.getPassengerId());
 
-                int insertSuccess = unfinishedOrderMapper.insert(unfinishedOrder);
-                if (1 == insertSuccess) {
-                    return R.ok("用户半年内取消订单超过3次，强制支付");
+                    int insertSuccess = unfinishedOrderMapper.insert(unfinishedOrder);
+                    if (1 == insertSuccess) {
+                        return R.ok("用户半年内取消订单超过3次，强制支付");
+                    } else {
+                        log.error("用户取消订单失败，表unfinished_order插入失败,订单id:{}", orderId);
+                        return R.error("用户取消订单失败，表unfinished_order插入失败");
+                    }
                 } else {
-                    log.error("用户取消订单失败，表unfinished_order插入失败,订单id:{}", orderId);
-                    return R.error("用户取消订单失败，表unfinished_order插入失败");
+                    log.error("用户取消订单失败，表order更新失败,订单id:{}", orderId);
+                    return R.error("用户取消订单失败，表order更新失败");
                 }
-            } else {
-                log.error("用户取消订单失败，表order更新失败,订单id:{}", orderId);
-                return R.error("用户取消订单失败，表order更新失败");
             }
+
+            // 否则正常取消
+            order.setStatus(OrderStatusEnum.PRE_DEPARTURE_USER_CANCELLED.getValue());
+            updateSuccess = updateById(order);
+        } finally {
+            // 更新carpooling信息
+            Carpooling carpooling = carpoolingServiceClient.getCarpoolingById(
+                    order.getCarpoolingId()
+            );
+            carpooling.setLeftPassengerNo(carpooling.getLeftPassengerNo() + 1);
+            carpoolingServiceClient.updateCarpooling(carpooling);
         }
-        order.setStatus(OrderStatusEnum.PRE_DEPARTURE_USER_CANCELLED.getValue());
-        updateSuccess = updateById(order);
 
         if (updateSuccess) {
             return R.ok("用户取消订单成功");

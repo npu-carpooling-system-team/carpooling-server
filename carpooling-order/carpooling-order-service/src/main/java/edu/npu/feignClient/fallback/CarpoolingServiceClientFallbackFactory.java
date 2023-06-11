@@ -2,6 +2,7 @@ package edu.npu.feignClient.fallback;
 
 import edu.npu.entity.Carpooling;
 import edu.npu.feignClient.CarpoolingServiceClient;
+import edu.npu.vo.R;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,11 @@ public class CarpoolingServiceClientFallbackFactory
             @Override
             public List<Carpooling> getCarpoolingListByDriverId(Long driverId) {
                 log.error("远程调用carpooling-api服务失败,原因:{}", cause.getMessage());
+                return null;
+            }
+
+            @Override
+            public R updateCarpooling(Carpooling carpooling) {
                 return null;
             }
         };

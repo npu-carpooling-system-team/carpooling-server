@@ -208,31 +208,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         BeanUtils.copyProperties(editCarpoolingDto, carpooling);
         // ES 同样新起一个线程来避免阻塞主线程
         cachedThreadPool.execute(() -> {
-            boolean saveEs = esService.updateCarpoolingToEs(carpooling);
-            if (!saveEs) {
-                log.error("直接修改拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
-                        carpooling);
-                failCachedCarpoolingMapper.insert(
-                        new FailCachedCarpooling(carpooling.getId(),
-                                UnCachedOperationEnum.UPDATE.getValue())
-                );
-            }
-            try {
-                // 更新Redis缓存
-                redisClient.setWithLogicalExpire(
-                        CACHE_CARPOOLING_KEY, carpooling.getId(),
-                        carpooling,
-                        CACHE_CARPOOLING_TTL, TimeUnit.MINUTES
-                );
-            } catch (Exception e) {
-                log.error("直接修改拼车行程:{}失败,Redis缓存操作失败,持久化入数据库。", carpooling);
-                if (saveEs) {
-                    failCachedCarpoolingMapper.insert(
-                            new FailCachedCarpooling(carpooling.getId(),
-                                    UnCachedOperationEnum.UPDATE.getValue())
-                    );
-                }
-            }
+            updateCarpoolingToNoSQL(carpooling);
             // 远程调用,发送通知邮件
             orderServiceClient
                 .sendNoticeMailToUser(carpooling.getId(),
@@ -248,6 +224,35 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                     "修改拼车行程失败,MySQL数据库操作失败,请确认参数合法性");
         }
         return R.ok();
+    }
+
+    @Override
+    public void updateCarpoolingToNoSQL(Carpooling carpooling) {
+        boolean saveEs = esService.updateCarpoolingToEs(carpooling);
+        if (!saveEs) {
+            log.error("直接修改拼车行程:{}失败,ElasticSearch数据库操作失败,持久化入数据库。",
+                    carpooling);
+            failCachedCarpoolingMapper.insert(
+                    new FailCachedCarpooling(carpooling.getId(),
+                            UnCachedOperationEnum.UPDATE.getValue())
+            );
+        }
+        try {
+            // 更新Redis缓存
+            redisClient.setWithLogicalExpire(
+                    CACHE_CARPOOLING_KEY, carpooling.getId(),
+                    carpooling,
+                    CACHE_CARPOOLING_TTL, TimeUnit.MINUTES
+            );
+        } catch (Exception e) {
+            log.error("直接修改拼车行程:{}失败,Redis缓存操作失败,持久化入数据库。", carpooling);
+            if (saveEs) {
+                failCachedCarpoolingMapper.insert(
+                        new FailCachedCarpooling(carpooling.getId(),
+                                UnCachedOperationEnum.UPDATE.getValue())
+                );
+            }
+        }
     }
 
     @Override

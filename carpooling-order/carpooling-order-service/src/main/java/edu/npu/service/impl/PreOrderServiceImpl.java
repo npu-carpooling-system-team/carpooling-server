@@ -56,6 +56,10 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
                 .getUserByAccountUsername(loginAccount.getUsername());
         Carpooling carpooling =
                 carpoolingServiceClient.getCarpoolingById(carpoolingId);
+        // 如果该行程的剩余乘客数为0，不允许下单
+        if (carpooling.getLeftPassengerNo() == 0) {
+            return R.error(ResponseCodeEnum.CREATION_ERROR, "该行程已无剩余乘客数，不允许下单");
+        }
         if (carpooling.getDriverId().equals(currentUser.getId())) {
             return R.error(ResponseCodeEnum.CREATION_ERROR, "不允许向自己的行程下订单");
         }
@@ -105,8 +109,26 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         // 更新表信息
         Order order = getById(passOrderDto.orderId());
         if (passOrderDto.pass()) {
-            // 更新表
+            // 更新订单表
             order.setStatus(OrderStatusEnum.PRE_ORDER_REQUEST_PASSED.getValue());
+            // 更新拼车表 当前行程可乘坐人数 - 1
+            Carpooling carpooling = carpoolingServiceClient
+                    .getCarpoolingById(order.getCarpoolingId());
+            // 确认可乘坐人数
+            if (carpooling.getLeftPassengerNo() < 1) {
+                log.error("订单确认，更新拼车行程信息失败，拼车id:{}，乘客id:{}",
+                        order.getCarpoolingId(), order.getPassengerId());
+                return R.error("更新拼车表信息失败，当前行程可乘坐人数小于1");
+            }
+            carpooling.setLeftPassengerNo(carpooling.getLeftPassengerNo() - 1);
+            cachedThreadPool.execute(() -> {
+                try {
+                    carpoolingServiceClient.updateCarpooling(carpooling);
+                } catch (Exception e) {
+                    log.error("订单确认，更新拼车行程信息失败，拼车id:{}，乘客id:{}",
+                            order.getCarpoolingId(), order.getPassengerId());
+                }
+            });
         } else {
             // 否则更新为强制结束
             order.setStatus(OrderStatusEnum.ORDER_FORCE_CLOSED.getValue());

@@ -46,12 +46,11 @@
         <spring-cloud.version>2022.0.2</spring-cloud.version>
         <spring-cloud-alibaba.version>2022.0.0.0-RC2</spring-cloud-alibaba.version>
         <org.projectlombok.version>1.18.26</org.projectlombok.version>
-        <jackson.version>2.14.2</jackson.version>
+        <jackson.version>2.15.2</jackson.version>
         <druid.version>1.2.15</druid.version>
         <mysql-connector-j.version>8.0.32</mysql-connector-j.version>
         <mybatis-plus-boot-starter.version>3.5.3.1</mybatis-plus-boot-starter.version>
         <hutool.version>5.8.16</hutool.version>
-        <minio.version>8.5.2</minio.version>
         <xxl-job-core.version>2.3.1</xxl-job-core.version>
         <elasticsearch.version>7.12.1</elasticsearch.version>
         <poi.version>5.2.3</poi.version>
@@ -117,11 +116,6 @@
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
                 <version>${hutool.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.minio</groupId>
-                <artifactId>minio</artifactId>
-                <version>${minio.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.elasticsearch.client</groupId>

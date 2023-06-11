@@ -2,9 +2,9 @@ package edu.npu.feignClient;
 
 import edu.npu.entity.Carpooling;
 import edu.npu.feignClient.fallback.CarpoolingServiceClientFallbackFactory;
+import edu.npu.vo.R;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,5 +20,9 @@ public interface CarpoolingServiceClient {
     Carpooling getCarpoolingById(@RequestParam(value = "id") Long id);
 
     @GetMapping("/getList")
-    List<Carpooling> getCarpoolingListByDriverId(@RequestParam(value = "driverId") Long driverId);
+    List<Carpooling> getCarpoolingListByDriverId(
+            @RequestParam(value = "driverId") Long driverId);
+
+    @PutMapping
+    R updateCarpooling(@RequestBody Carpooling carpooling);
 }

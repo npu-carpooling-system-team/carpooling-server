@@ -24,6 +24,8 @@ public interface DriverCarpoolingService extends IService<Carpooling> {
     @Transactional(rollbackFor = Exception.class)
     R updateCarpooling(Long id, EditCarpoolingDto addCarpoolingDto, LoginAccount loginAccount);
 
+    void updateCarpoolingToNoSQL(Carpooling carpooling);
+
     @Transactional(rollbackFor = Exception.class)
     R deleteCarpooling(Long id, LoginAccount loginAccount);
 
