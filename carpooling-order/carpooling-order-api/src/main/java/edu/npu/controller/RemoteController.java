@@ -54,6 +54,6 @@ public class RemoteController {
                 new LambdaQueryWrapper<Order>()
                         .eq(Order::getCarpoolingId, carpoolingId)
         );
-        return orderList.size() > 0;
+        return !orderList.isEmpty();
     }
 }

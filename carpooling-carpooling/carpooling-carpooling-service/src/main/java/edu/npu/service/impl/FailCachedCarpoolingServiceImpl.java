@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import edu.npu.common.UnCachedOperationEnum;
 import edu.npu.entity.Carpooling;
 import edu.npu.entity.FailCachedCarpooling;
+import edu.npu.exception.CarpoolingException;
 import edu.npu.mapper.CarpoolingMapper;
 import edu.npu.mapper.FailCachedCarpoolingMapper;
 import edu.npu.service.FailCachedCarpoolingService;
@@ -64,52 +65,50 @@ public class FailCachedCarpoolingServiceImpl extends ServiceImpl<FailCachedCarpo
         //计数器
         CountDownLatch countDownLatch = new CountDownLatch(size);
         // 将数据根据operationType同步到Redis与ES中
-        failCachedCarpoolingList.forEach( failCachedCarpooling -> {
-            threadPool.execute(() -> {
-                if (failCachedCarpooling.getOperationType().equals(
-                        UnCachedOperationEnum.INSERT.getValue()
-                )) {
-                    // 插入ES
-                    Carpooling carpooling = carpoolingMapper
-                            .selectById(failCachedCarpooling.getCarpoolingId());
-                    esService.saveCarpoolingToEs(carpooling);
-                } else if (failCachedCarpooling.getOperationType().equals(
-                        UnCachedOperationEnum.SET.getValue()
-                )) {
-                    // 插入Redis
-                    Carpooling carpooling = carpoolingMapper
-                            .selectById(failCachedCarpooling.getCarpoolingId());
-                    redisClient.setWithLogicalExpire(
-                            CACHE_CARPOOLING_KEY, carpooling.getId(),
-                            carpooling, CACHE_CARPOOLING_TTL, TimeUnit.MINUTES
-                    );
-                } else if (failCachedCarpooling.getOperationType().equals(
-                        UnCachedOperationEnum.UPDATE.getValue()
-                )) {
-                    // 更新操作
-                    Carpooling carpooling = carpoolingMapper
-                            .selectById(failCachedCarpooling.getCarpoolingId());
-                    redisClient.setWithLogicalExpire(
-                            CACHE_CARPOOLING_KEY, carpooling.getId(),
-                            carpooling, CACHE_CARPOOLING_TTL, TimeUnit.MINUTES
-                    );
-                    esService.updateCarpoolingToEs(carpooling);
-                } else if (failCachedCarpooling.getOperationType().equals(
-                        UnCachedOperationEnum.DELETE.getValue()
-                )) {
-                    // 删除操作
-                    stringRedisTemplate
-                            .delete(CACHE_CARPOOLING_KEY +
-                                    failCachedCarpooling.getCarpoolingId());
-                    esService.deleteCarpoolingFromEs(failCachedCarpooling.getCarpoolingId());
-                } else {
-                    log.error("FailCachedCarpoolingServiceImpl.syncFailCachedCarpooling: " +
-                                    "operationType is not valid, operationType = {}",
-                            failCachedCarpooling.getOperationType());
-                }
-                countDownLatch.countDown();
-            });
-        });
+        failCachedCarpoolingList.forEach( failCachedCarpooling -> threadPool.execute(() -> {
+            if (failCachedCarpooling.getOperationType().equals(
+                    UnCachedOperationEnum.INSERT.getValue()
+            )) {
+                // 插入ES
+                Carpooling carpooling = carpoolingMapper
+                        .selectById(failCachedCarpooling.getCarpoolingId());
+                esService.saveCarpoolingToEs(carpooling);
+            } else if (failCachedCarpooling.getOperationType().equals(
+                    UnCachedOperationEnum.SET.getValue()
+            )) {
+                // 插入Redis
+                Carpooling carpooling = carpoolingMapper
+                        .selectById(failCachedCarpooling.getCarpoolingId());
+                redisClient.setWithLogicalExpire(
+                        CACHE_CARPOOLING_KEY, carpooling.getId(),
+                        carpooling, CACHE_CARPOOLING_TTL, TimeUnit.MINUTES
+                );
+            } else if (failCachedCarpooling.getOperationType().equals(
+                    UnCachedOperationEnum.UPDATE.getValue()
+            )) {
+                // 更新操作
+                Carpooling carpooling = carpoolingMapper
+                        .selectById(failCachedCarpooling.getCarpoolingId());
+                redisClient.setWithLogicalExpire(
+                        CACHE_CARPOOLING_KEY, carpooling.getId(),
+                        carpooling, CACHE_CARPOOLING_TTL, TimeUnit.MINUTES
+                );
+                esService.updateCarpoolingToEs(carpooling);
+            } else if (failCachedCarpooling.getOperationType().equals(
+                    UnCachedOperationEnum.DELETE.getValue()
+            )) {
+                // 删除操作
+                stringRedisTemplate
+                        .delete(CACHE_CARPOOLING_KEY +
+                                failCachedCarpooling.getCarpoolingId());
+                esService.deleteCarpoolingFromEs(failCachedCarpooling.getCarpoolingId());
+            } else {
+                log.error("FailCachedCarpoolingServiceImpl.syncFailCachedCarpooling: " +
+                                "operationType is not valid, operationType = {}",
+                        failCachedCarpooling.getOperationType());
+            }
+            countDownLatch.countDown();
+        }));
 
         try {
             boolean await = countDownLatch.await(DEFAULT_PROCESS_MINUTES, TimeUnit.MINUTES);
@@ -121,7 +120,7 @@ public class FailCachedCarpoolingServiceImpl extends ServiceImpl<FailCachedCarpo
                         "sync success");
             }
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new CarpoolingException(e.getMessage());
         }
     }
 

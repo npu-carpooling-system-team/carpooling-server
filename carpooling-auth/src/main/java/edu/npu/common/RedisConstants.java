@@ -27,4 +27,7 @@ public class RedisConstants {
 
     // 该统计过期时间为8天
     public static final Long LOGIN_COUNT_EXPIRE_TIME = 60 * 60 * 24 * 8L;
+
+    private RedisConstants() {
+    }
 }

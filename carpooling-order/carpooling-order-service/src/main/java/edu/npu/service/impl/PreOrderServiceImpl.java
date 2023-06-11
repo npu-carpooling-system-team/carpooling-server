@@ -1,5 +1,6 @@
 package edu.npu.service.impl;
 
+import cn.hutool.core.util.BooleanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import edu.npu.common.OrderStatusEnum;
@@ -168,7 +169,7 @@ public class PreOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
     private R confirmForbidden(Long carpoolingId, LoginAccount loginAccount) {
         User currentUser = userServiceClient
                 .getUserByAccountUsername(loginAccount.getUsername());
-        if (!currentUser.getIsDriver()) {
+        if (BooleanUtil.isFalse(currentUser.getIsDriver())) {
             return R.error(ResponseCodeEnum.FORBIDDEN, "该接口不允许非司机用户请求。");
         }
         // 需要校验行程ID是否是该司机的

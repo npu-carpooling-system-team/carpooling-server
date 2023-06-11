@@ -31,7 +31,9 @@ public class AdminGeneralController {
 
     private static final Long FINAL_DATE = 4102415999000L;
 
-    private static Date begin, end;
+    private Date begin;
+
+    private Date end;
 
     @PreAuthorize("hasAuthority('Admin')")
     @GetMapping("/carpooling/list")

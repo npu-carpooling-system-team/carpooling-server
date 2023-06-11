@@ -263,7 +263,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                 loginAccount.getUsername()
         );
         Carpooling carpooling = getById(id);
-        if (!Objects.equals(driver.getDriverId(), carpooling.getDriverId())) {
+        if (!driver.getDriverId().equals(carpooling.getDriverId())) {
             return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
                     "不允许删除行程,您不是该行程的发布者");
         }

@@ -25,6 +25,7 @@ public class OcrServiceImpl implements OcrService {
     @Resource
     private Client client;
 
+
     @Override
     public R ocrIdCard(MultipartFile multipartFile) {
         // 将MultipartFile转换为File
@@ -98,7 +99,7 @@ public class OcrServiceImpl implements OcrService {
      * @return File
      */
     private File transferMultipartFileToFile(MultipartFile multipartFile) {
-        File file;
+        File file ;
         String originalFilename = multipartFile.getOriginalFilename();
         String[] filename;
         if (originalFilename != null) {
@@ -110,7 +111,7 @@ public class OcrServiceImpl implements OcrService {
             file = File.createTempFile(filename[0], filename[1]);
             multipartFile.transferTo(file);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new CarpoolingException(e.getMessage());
         }
         return file;
     }

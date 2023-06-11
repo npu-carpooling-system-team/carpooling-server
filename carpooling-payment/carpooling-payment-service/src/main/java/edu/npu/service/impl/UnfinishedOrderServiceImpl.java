@@ -169,7 +169,7 @@ public class UnfinishedOrderServiceImpl extends ServiceImpl<UnfinishedOrderMappe
                 log.info("订单关闭任务完成");
             }
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new CarpoolingException(e.getMessage());
         }
     }
 
