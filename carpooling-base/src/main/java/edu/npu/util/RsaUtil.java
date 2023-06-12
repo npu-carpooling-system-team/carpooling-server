@@ -12,6 +12,9 @@ import edu.npu.exception.CarpoolingException;
  */
 public class RsaUtil {
 
+    private RsaUtil() {
+    }
+
     public static String decrypt(String privateKey, String encryptPassword) {
 
         try {

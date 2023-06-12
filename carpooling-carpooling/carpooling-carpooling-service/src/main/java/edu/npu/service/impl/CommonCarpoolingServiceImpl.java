@@ -1,18 +1,13 @@
 package edu.npu.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import edu.npu.common.UnCachedOperationEnum;
 import edu.npu.entity.Carpooling;
-import edu.npu.entity.FailCachedCarpooling;
 import edu.npu.mapper.CarpoolingMapper;
-import edu.npu.mapper.FailCachedCarpoolingMapper;
 import edu.npu.service.CommonCarpoolingService;
 import edu.npu.service.DriverCarpoolingService;
 import edu.npu.util.RedisClient;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

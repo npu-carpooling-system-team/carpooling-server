@@ -53,6 +53,8 @@ public class FailCachedCarpoolingServiceImpl extends ServiceImpl<FailCachedCarpo
 
     private static final Long DEFAULT_PROCESS_MINUTES = 30L;
 
+    private static final String SYNC_FAILED_CACHED_MSG = "FailCachedCarpoolingServiceImpl.syncFailCachedCarpooling: ";
+
     @Override
     public void syncFailCachedCarpooling(int shardIndex, int shardTotal, int i) {
         List<FailCachedCarpooling> failCachedCarpoolingList =
@@ -103,7 +105,7 @@ public class FailCachedCarpoolingServiceImpl extends ServiceImpl<FailCachedCarpo
                                 failCachedCarpooling.getCarpoolingId());
                 esService.deleteCarpoolingFromEs(failCachedCarpooling.getCarpoolingId());
             } else {
-                log.error("FailCachedCarpoolingServiceImpl.syncFailCachedCarpooling: " +
+                log.error(SYNC_FAILED_CACHED_MSG +
                                 "operationType is not valid, operationType = {}",
                         failCachedCarpooling.getOperationType());
             }
@@ -113,10 +115,10 @@ public class FailCachedCarpoolingServiceImpl extends ServiceImpl<FailCachedCarpo
         try {
             boolean await = countDownLatch.await(DEFAULT_PROCESS_MINUTES, TimeUnit.MINUTES);
             if (!await) {
-                log.error("FailCachedCarpoolingServiceImpl.syncFailCachedCarpooling: " +
+                log.error(SYNC_FAILED_CACHED_MSG +
                         "sync fail, countDownLatch.await timeout");
             } else {
-                log.info("FailCachedCarpoolingServiceImpl.syncFailCachedCarpooling: " +
+                log.info(SYNC_FAILED_CACHED_MSG +
                         "sync success");
             }
         } catch (InterruptedException e) {

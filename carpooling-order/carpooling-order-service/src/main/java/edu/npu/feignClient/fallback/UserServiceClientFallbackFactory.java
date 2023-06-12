@@ -18,36 +18,38 @@ import java.util.List;
 @Component
 public class UserServiceClientFallbackFactory implements FallbackFactory<UserServiceClient> {
 
+    private static final String FAILED_CALLAPI_SERVICE_MSG = "远程调用user-api服务失败";
+
     @Override
     public UserServiceClient create(Throwable cause) {
         return new UserServiceClient() {
             @Override
             public User getUserByAccountUsername(String username) {
-                log.error("远程调用user-api服务失败,原因:{}", cause.getMessage());
+                log.error(FAILED_CALLAPI_SERVICE_MSG, cause.getMessage());
                 return null;
             }
 
             @Override
             public User getUserById(Long id) {
-                log.error("远程调用user-api服务失败,原因:{}", cause.getMessage());
+                log.error(FAILED_CALLAPI_SERVICE_MSG, cause.getMessage());
                 return null;
             }
 
             @Override
             public Driver getDriverByAccountUsername(String username) {
-                log.error("远程调用user-api服务失败,原因:{}", cause.getMessage());
+                log.error(FAILED_CALLAPI_SERVICE_MSG, cause.getMessage());
                 return null;
             }
 
             @Override
             public List<Driver> getDriverList() {
-                log.error("远程调用user-api服务失败,原因:{}", cause.getMessage());
-                return null;
+                log.error(FAILED_CALLAPI_SERVICE_MSG, cause.getMessage());
+                return new ArrayList<>();
             }
 
             @Override
             public boolean updateDriver(Driver driver) {
-                log.error("远程调用user-api服务失败,原因:{}", cause.getMessage());
+                log.error(FAILED_CALLAPI_SERVICE_MSG, cause.getMessage());
                 return false;
             }
         };

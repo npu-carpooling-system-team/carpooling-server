@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,7 +44,7 @@ public class UserServiceClientFallbackFactory implements FallbackFactory<UserSer
             @Override
             public List<Driver> getDriverList() {
                 log.error(REMOTE_CALL_FAILED, cause.getMessage());
-                return null;
+                return new ArrayList<>();
             }
 
             @Override

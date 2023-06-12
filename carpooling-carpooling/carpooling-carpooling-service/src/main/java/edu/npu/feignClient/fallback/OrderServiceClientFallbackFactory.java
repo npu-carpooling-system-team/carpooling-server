@@ -12,22 +12,25 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class OrderServiceClientFallbackFactory implements FallbackFactory<OrderServiceClient> {
+
+    private static final String FAILED_CALLAPI_SERVICE = "远程调用order-api服务失败";
+
     @Override
     public OrderServiceClient create(Throwable throwable) {
         return new OrderServiceClient() {
             @Override
             public void sendNoticeMailToUser(Long carpoolingId, String subject, String content) {
-                log.error("远程调用order-api服务失败", throwable);
+                log.error(FAILED_CALLAPI_SERVICE, throwable);
             }
 
             @Override
             public void forceCloseOrderByCarpoolingId(Long carpoolingId) {
-                log.error("远程调用order-api服务失败", throwable);
+                log.error(FAILED_CALLAPI_SERVICE, throwable);
             }
 
             @Override
             public boolean checkHasPassenger(Long carpoolingId) {
-                log.error("远程调用order-api服务失败", throwable);
+                log.error(FAILED_CALLAPI_SERVICE, throwable);
                 return false;
             }
         };
