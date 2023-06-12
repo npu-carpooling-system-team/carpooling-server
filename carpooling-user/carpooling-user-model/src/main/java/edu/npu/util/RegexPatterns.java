@@ -26,4 +26,7 @@ public abstract class RegexPatterns {
      */
     public static final String PLATE_NO_REGEX = "^[\\u4e00-\\u9fa5]{1}[A-Z]{1}[A-Z_0-9]{5,6}$";
 
+    private RegexPatterns() {
+    }
+
 }

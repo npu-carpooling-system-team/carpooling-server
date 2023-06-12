@@ -47,6 +47,8 @@ public class EsService {
     @Lazy
     private FailCachedCarpoolingService failCachedCarpoolingService;
 
+    private static final String FAILED_TRANSFER_TO_JSON = "carpooling对象无法转换为json字符串";
+
     public boolean saveCarpoolingToEs(Carpooling carpooling) {
         log.info("开始保存carpooling:{}到ElasticSearch", carpooling);
         CarpoolingDoc carpoolingDoc = new CarpoolingDoc(carpooling);
@@ -56,12 +58,12 @@ public class EsService {
         } catch (JsonProcessingException e) {
             log.error(CONVERT_CARPOOLING_WARNING_LOG, carpooling);
             CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
-                    "carpooling对象无法转换为json字符串");
+                    FAILED_TRANSFER_TO_JSON);
         }
         if (!StringUtils.hasText(jsonDoc)) {
             log.error(CONVERT_CARPOOLING_WARNING_LOG, carpooling);
             CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
-                    "carpooling对象无法转换为json字符串");
+                    FAILED_TRANSFER_TO_JSON);
         }
         // 1.准备Request
         IndexRequest request = new IndexRequest(CARPOOLING_INDEX)
@@ -100,7 +102,7 @@ public class EsService {
         } catch (JsonProcessingException e) {
             log.error(CONVERT_CARPOOLING_WARNING_LOG, carpooling);
             CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
-                    "carpooling对象无法转换为json字符串");
+                    FAILED_TRANSFER_TO_JSON);
         }
         request.doc(jsonDoc, XContentType.JSON);
         UpdateResponse updateResponse = null;

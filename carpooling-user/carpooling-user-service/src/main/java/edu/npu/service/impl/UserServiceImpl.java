@@ -1,5 +1,6 @@
 package edu.npu.service.impl;
 
+import cn.hutool.core.util.BooleanUtil;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.request.AlipaySystemOauthTokenRequest;
@@ -54,6 +55,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Resource
     private DriverMapper driverMapper;
+
+    private static final String USER_NONEXISTENT = "用户不存在";
 
 
     @Override
@@ -119,11 +122,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                         .lambda()
                         .eq(User::getUsername, loginAccount.getUsername()));
         if (user == null) {
-            log.error("用户不存在");
-            return R.error(ResponseCodeEnum.NOT_FOUND, "用户不存在");
+            log.error(USER_NONEXISTENT);
+            return R.error(ResponseCodeEnum.NOT_FOUND, USER_NONEXISTENT);
         }
         Driver driver = null;
-        if (user.getIsDriver()) {
+        if (BooleanUtil.isTrue(user.getIsDriver())) {
             driver = driverMapper.selectOne(
                     new QueryWrapper<Driver>()
                             .lambda()
@@ -201,7 +204,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         loginAccountMapper.deleteById(loginAccount);
 
-        if (user.getIsDriver()) {
+        if (BooleanUtil.isTrue(user.getIsDriver())) {
             Driver driver = driverMapper.selectOne(
                     new LambdaQueryWrapper<Driver>()
                             .eq(Driver::getDriverId, user.getId()));
@@ -224,10 +227,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 new LambdaQueryWrapper<User>()
                         .eq(User::getUsername, username));
         if (user == null) {
-            log.error("用户不存在");
+            log.error(USER_NONEXISTENT);
             return null;
         }
-        if (!user.getIsDriver()) {
+        if (BooleanUtil.isFalse(user.getIsDriver())) {
             log.error("用户不是司机");
             return null;
         }
@@ -249,7 +252,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                         .eq(LoginAccount::getUsername, user.getUsername())
         );
         if (loginAccount == null) {
-            log.error("用户不存在");
+            log.error(USER_NONEXISTENT);
             return false;
         }
         deleteAccount(loginAccount);

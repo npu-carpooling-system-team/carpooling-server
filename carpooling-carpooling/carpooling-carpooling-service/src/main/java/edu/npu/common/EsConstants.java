@@ -6,4 +6,7 @@ package edu.npu.common;
  */
 public class EsConstants {
     public static final String CARPOOLING_INDEX = "carpooling";
+
+    private EsConstants() {
+    }
 }

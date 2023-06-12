@@ -58,6 +58,10 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    private static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd";
+
+    private static final String FAILED_GENERATE_ORDER_LIST_MSG = "生成订单列表失败";
+
     private static final ExecutorService cachedThreadPool =
             Executors.newFixedThreadPool(
                     // 获取系统核数
@@ -134,17 +138,17 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
             }
             File file = File.createTempFile(
                     "订单列表_" +
-                            new SimpleDateFormat("yyyy-MM-dd").format(begin) +
+                            new SimpleDateFormat(SIMPLE_DATE_FORMAT).format(begin) +
                             "_" +
-                            new SimpleDateFormat("yyyy-MM-dd").format(end),
+                            new SimpleDateFormat(SIMPLE_DATE_FORMAT).format(end),
                     ".xlsx"
             );
             String url = uploadFileToOss(workbook, file);
             return StringUtils.hasText(url) ?
-                    R.ok().put("result", url) : R.error("生成订单列表失败");
+                    R.ok().put("result", url) : R.error(FAILED_GENERATE_ORDER_LIST_MSG);
         } catch (IOException e) {
             e.printStackTrace();
-            throw new CarpoolingException("生成订单列表失败");
+            throw new CarpoolingException(FAILED_GENERATE_ORDER_LIST_MSG);
         }
     }
 
@@ -184,16 +188,16 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
             }
             File file = File.createTempFile(
                     "嘉奖列表_" +
-                            new SimpleDateFormat("yyyy-MM-dd").format(begin) +
+                            new SimpleDateFormat(SIMPLE_DATE_FORMAT).format(begin) +
                             "_" +
-                            new SimpleDateFormat("yyyy-MM-dd").format(end),
+                            new SimpleDateFormat(SIMPLE_DATE_FORMAT).format(end),
                     ".xlsx"
             );
             String url = uploadFileToOss(workbook, file);
             return StringUtils.hasText(url) ?
-                    R.ok().put("result", url) : R.error("生成订单列表失败");
+                    R.ok().put("result", url) : R.error(FAILED_GENERATE_ORDER_LIST_MSG);
         } catch (IOException e) {
-            throw new CarpoolingException("生成订单列表失败");
+            throw new CarpoolingException(FAILED_GENERATE_ORDER_LIST_MSG);
         }
     }
 
@@ -210,7 +214,7 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
                 log.info("上传到OSS成功,file:{}", file.getName());
                 cachedThreadPool.execute(() -> {
                     String currentDate =
-                            new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+                            new SimpleDateFormat(SIMPLE_DATE_FORMAT).format(new Date());
                     stringRedisTemplate.opsForList()
                             .leftPush(
                                     UPLOAD_FILE_KEY_PREFIX + currentDate,

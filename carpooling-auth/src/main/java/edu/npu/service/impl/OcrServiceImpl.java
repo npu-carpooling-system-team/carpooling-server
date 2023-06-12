@@ -25,6 +25,8 @@ public class OcrServiceImpl implements OcrService {
     @Resource
     private Client client;
 
+    private static final String FAILED_TRANSFER = "文件转换失败";
+
 
     @Override
     public R ocrIdCard(MultipartFile multipartFile) {
@@ -32,7 +34,7 @@ public class OcrServiceImpl implements OcrService {
         try {
             File file = transferMultipartFileToFile(multipartFile);
             if (file == null) {
-                return R.error("文件转换失败");
+                return R.error(FAILED_TRANSFER);
             }
             RecognizeIdcardRequest recognizeIdcardRequest =
                     new RecognizeIdcardRequest()
@@ -55,7 +57,7 @@ public class OcrServiceImpl implements OcrService {
         try{
             File file = transferMultipartFileToFile(multipartFile);
             if (file == null) {
-                return R.error("文件转换失败");
+                return R.error(FAILED_TRANSFER);
             }
             RecognizeDrivingLicenseRequest recognizeDrivingLicenseRequest =
                     new RecognizeDrivingLicenseRequest()
@@ -76,7 +78,7 @@ public class OcrServiceImpl implements OcrService {
         try{
             File file = transferMultipartFileToFile(multipartFile);
             if (file == null) {
-                return R.error("文件转换失败");
+                return R.error(FAILED_TRANSFER);
             }
             RecognizeVehicleLicenseRequest recognizeVehicleLicenseRequest =
                     new RecognizeVehicleLicenseRequest()

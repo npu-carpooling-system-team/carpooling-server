@@ -88,6 +88,8 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     @Resource
     private FailCachedCarpoolingMapper failCachedCarpoolingMapper;
 
+    private static final String DEPARTURE_TIME = "departureTime";
+
     // 负责执行新线程上其他任务的线程池
     private static final ExecutorService cachedThreadPool =
         Executors.newFixedThreadPool(
@@ -362,7 +364,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         boolQueryBuilder.must(QueryBuilders.termQuery("driverId", driverId));
         // 拼装 排序时事件从近到远
         searchRequest.source().query(boolQueryBuilder).sort(
-                SortBuilders.fieldSort("departureTime").order(SortOrder.ASC)
+                SortBuilders.fieldSort(DEPARTURE_TIME).order(SortOrder.ASC)
         );
     }
 
@@ -391,7 +393,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(pageQueryDto);
         // 拼装
         searchRequest.source().query(boolQueryBuilder).sort(
-                SortBuilders.fieldSort("departureTime").order(SortOrder.ASC)
+                SortBuilders.fieldSort(DEPARTURE_TIME).order(SortOrder.ASC)
         );
     }
 
@@ -409,7 +411,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         Date departureTime = pageQueryDto.getDepartureTime();
         if (departureTime != null) {
             String departureTimeStr = sdf.format(departureTime);
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("departureTime")
+            boolQueryBuilder.must(QueryBuilders.rangeQuery(DEPARTURE_TIME)
                     .gte(departureTimeStr));
         }
         Date arriveTime = pageQueryDto.getArriveTime();
