@@ -28,6 +28,8 @@ public class SendSmsUtil {
     @Resource
     private ObjectMapper objectMapper;
 
+    private static final String SMS_ERR_MSG = "send sms error: ";
+
     public void sendSmsCode(String phoneNumber, String code){
 
         // Configure Credentials authentication information, including ak, secret, token
@@ -68,16 +70,16 @@ public class SendSmsUtil {
         try {
             resp = response.get();
             if(!(resp.getBody().getCode().equals("OK") && resp.getBody().getMessage().equals("OK"))){
-                log.error("send sms error: " + objectMapper.writeValueAsString(resp));
+                log.error(SMS_ERR_MSG + objectMapper.writeValueAsString(resp));
                 CarpoolingException.cast("send sms error");
             } else {
                 log.info("短信发送成功");
             }
         } catch (ExecutionException | JsonProcessingException e) {
-            log.error("send sms error: " + e.getMessage());
+            log.error(SMS_ERR_MSG + e.getMessage());
             throw new CarpoolingException(e.getMessage());
         } catch (InterruptedException e){
-            log.error("send sms error: " + e.getMessage());
+            log.error(SMS_ERR_MSG + e.getMessage());
             Thread.currentThread().interrupt();
         }
 
