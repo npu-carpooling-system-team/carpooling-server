@@ -272,6 +272,8 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
                 .before(DateUtil.offsetHour(new Date(), 6))
                 && orderServiceClient.checkHasPassenger(id)
         ) {
+            // 强制结束
+            orderServiceClient.forceCloseOrderByCarpoolingId(id);
             return R.error(ResponseCodeEnum.PRE_CHECK_FAILED,
                     "不允许删除行程,出发前6小时内且有乘客时不允许删除行程");
         }

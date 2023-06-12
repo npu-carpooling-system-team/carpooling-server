@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/inprocess")
-public class DrivingOrderController {
+public class PassengerOrderController {
 
     @Resource
     private DrivingOrderService drivingOrderService;

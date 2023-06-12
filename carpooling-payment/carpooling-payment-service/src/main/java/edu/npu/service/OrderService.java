@@ -19,4 +19,6 @@ public interface OrderService extends IService<Order> {
     String checkSignAndConfirm(Map<String, String> notifyParams);
 
     boolean transfer(Order order);
+
+    R updatePay(Long orderId, LoginAccount loginAccount);
 }

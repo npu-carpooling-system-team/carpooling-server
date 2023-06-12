@@ -10,15 +10,18 @@ import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.AlipayFundTransCommonQueryRequest;
 import com.alipay.api.request.AlipayFundTransUniTransferRequest;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.alipay.api.request.AlipayTradeWapPayRequest;
 import com.alipay.api.response.AlipayFundTransCommonQueryResponse;
 import com.alipay.api.response.AlipayFundTransUniTransferResponse;
 import com.alipay.api.response.AlipayTradePagePayResponse;
+import com.alipay.api.response.AlipayTradeWapPayResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import edu.npu.common.AlipayTradeState;
 import edu.npu.common.OrderStatusEnum;
+import edu.npu.common.ResponseCodeEnum;
 import edu.npu.entity.*;
 import edu.npu.exception.CarpoolingError;
 import edu.npu.exception.CarpoolingException;
@@ -59,6 +62,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
     private ObjectMapper objectMapper;
 
     @Resource
+    private OrderMapper orderMapper;
+
+    @Resource
     private Environment config;
 
     @Resource
@@ -87,7 +93,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         log.debug("收到来自用户:{}对订单:{}的缴费请求,开始处理", loginAccount.getId(), orderId);
 
         // 调用支付宝接口 可能alt+enter没有候选项，需要自己写import
-        AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
+        AlipayTradeWapPayRequest request = new AlipayTradeWapPayRequest();
 
         request.setNotifyUrl(config.getProperty("alipay.notify-url"));
         request.setReturnUrl(config.getProperty("alipay.return-url"));
@@ -101,13 +107,15 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         );
         bizContent.put("total_amount", carpooling.getPrice());
         bizContent.put("subject", "西工大拼车平台订单支付");
-        // 手机端场景请使用QUICK_WAP_WAY 电脑FAST_INSTANT_TRADE_PAY
+        // 手机端场景使用QUICK_WAP_WAY
+        // 电脑FAST_INSTANT_TRADE_PAY
+        // 注意和req res统一
         bizContent.put("product_code", "QUICK_WAP_WAY");
         bizContent.put("quit_url", config.getProperty("alipay.quit-url"));
         // 继续构造请求
         request.setBizContent(bizContent.toString());
         // 调用远程接口
-        AlipayTradePagePayResponse response = null;
+        AlipayTradeWapPayResponse response = null;
         try {
             response = alipayClient.pageExecute(request);
         } catch (AlipayApiException e) {
@@ -118,10 +126,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         }
         if (response.isSuccess()) {
             log.info(CALL_SUCCESS + response.getBody());
-            // 更新order表中status到已支付 等待回调
-            Order order = getById(orderId);
-            order.setStatus(OrderStatusEnum.PAID_WAITING_CALLBACK.getValue());
-            updateById(order);
         } else {
             log.info(CALL_FAILURE + response.getCode() + " " + response.getMsg());
             CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR, "创建支付交易失败,对方接口异常");
@@ -174,6 +178,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
          * seller_id=2088621993877332
          * }
          */
+        log.info("收到支付宝通知回调,通知参数 ====> {}", notifyParams);
         String result = "failure";
         // 1.验签 如果成功返回success，否则返回failure(支付宝要求)
         boolean signVerified = false; //调用SDK验证签名
@@ -209,7 +214,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             // out_trade_no
             String outTradeNo = notifyParams.get(OUT_TRADE_NUMBER.getType());
             // 获取订单对象
-            Order order = getById(outTradeNo);
+            Order order = getById(Long.parseLong(outTradeNo));
 
 
             if (order == null) {
@@ -224,7 +229,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             Carpooling thisCarpooling = carpoolingServiceClient
                                             .getCarpoolingById(order.getCarpoolingId());
             int originalPrice = thisCarpooling.getPrice();
-            if ( originalPrice !=totalAmountInt){
+            if (originalPrice != totalAmountInt){
                 log.error("订单金额不一致，订单号:{}，订单金额:{}，支付宝金额:{}",
                         outTradeNo, originalPrice, totalAmountInt);
                 return result;
@@ -250,7 +255,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             // 前者支持退款 后者不支持退款
             String tradeStatus = notifyParams.get("trade_status");
             if (!tradeStatus.equals(AlipayTradeState.SUCCESS.getType())) {
-                log.error("交易状态不正确，订单号:{}，交易状态:{}", outTradeNo, tradeStatus);
+                log.error("支付未完成，订单号:{}，交易状态:{}", outTradeNo, tradeStatus);
+                order.setStatus(OrderStatusEnum.ARRIVED_USER_UNPAID.getValue());
+                int success = orderMapper.updateOrderStatus(order);
+                if (success != 1) {
+                    log.error("支付未完成，更新订单状态失败，订单号:{}", outTradeNo);
+                }
                 return result;
             }
 
@@ -283,6 +293,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
                     );
                     // 记录支付日志
                     log.info("订单号:{} 回调已收到，参数正常，状态已更新", outTradeNo);
+                    orderMapper.updateOrderStatus(order);
                 } finally {
                     lock.unlock();
                 }
@@ -367,6 +378,32 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         }
         log.error("向司机转账失败，订单号:{}", order.getId());
         return false;
+    }
+
+    @Override
+    public R updatePay(Long orderId, LoginAccount loginAccount) {
+        // 查询订单 确认订单号与用户一致
+        if(orderId == null || loginAccount == null) {
+            return R.error(ResponseCodeEnum.CREATION_ERROR,"参数错误");
+        }
+        // 更新order表中status到已支付 等待回调
+        Order order = getById(orderId);
+        if (order == null){
+            return R.error(ResponseCodeEnum.CREATION_ERROR,"订单不存在");
+        } else if (
+                !order.getPassengerId().equals(
+                    userServiceClient.getUserByAccountUsername(
+                            loginAccount.getUsername()
+                    ).getId()
+                )
+        ){
+            return R.error(ResponseCodeEnum.CREATION_ERROR,"订单号与用户不匹配");
+        }
+        if (order.getStatus() == OrderStatusEnum.ARRIVED_USER_UNPAID.getValue()) {
+            order.setStatus(OrderStatusEnum.PAID_WAITING_CALLBACK.getValue());
+            orderMapper.updateOrderStatus(order);
+        }
+        return R.ok();
     }
 
     /**

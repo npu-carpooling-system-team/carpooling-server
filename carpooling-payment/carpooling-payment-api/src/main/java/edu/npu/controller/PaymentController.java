@@ -35,6 +35,18 @@ public class PaymentController {
     }
 
     /**
+     * 前端完成支付跳转后调用该接口
+     * @param orderId 订单id
+     * @param loginAccount 登录账号
+     * @return R
+     */
+    @PutMapping("/{orderId}")
+    public R updatePay(@PathVariable("orderId") Long orderId,
+                      @AuthenticationPrincipal LoginAccount loginAccount) {
+        return orderService.updatePay(orderId, loginAccount);
+    }
+
+    /**
      * 支付通知回调接口，该接口由支付宝开放平台调用，与前端无关
      * @param notifyParams 支付宝开放平台回调参数
      * @return 对支付宝开放平台响应校验后的结果
