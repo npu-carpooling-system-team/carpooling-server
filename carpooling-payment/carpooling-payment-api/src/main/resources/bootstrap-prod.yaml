@@ -28,4 +28,10 @@ spring:
           - data-id: mail-config-${spring.profiles.active}.yaml
             group: carpooling-system
             refresh: true
-
+          - data-id: redis-config-${spring.profiles.active}.yaml
+            group: carpooling-system
+            refresh: true
+xxl:
+  job:
+    executor:
+      port: 63065

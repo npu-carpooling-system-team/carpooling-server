@@ -32,3 +32,7 @@ spring:
             group: carpooling-system
             refresh: true
 
+xxl:
+  job:
+    executor:
+      port: 63055
