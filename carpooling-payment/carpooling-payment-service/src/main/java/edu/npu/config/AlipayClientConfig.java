@@ -17,7 +17,7 @@ public class AlipayClientConfig {
     @Resource
     private Environment config; // 依赖注入
 
-    @Bean
+    @Bean(name = "alipayClient")
     public AlipayClient alipayClient() throws AlipayApiException {
         AlipayConfig alipayConfig = new AlipayConfig();
         //设置网关地址

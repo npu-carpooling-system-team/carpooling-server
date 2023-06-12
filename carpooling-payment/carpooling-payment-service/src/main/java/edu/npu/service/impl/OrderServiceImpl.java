@@ -35,12 +35,14 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static edu.npu.common.AlipayRequestConstants.OUT_TRADE_NUMBER;
@@ -271,32 +273,39 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
              * 2.如果没有使用@Transaction注解，那么在方法执行完后，需要手动提交事务，此时锁才会释放
              * 参考 https://blog.csdn.net/fal1230/article/details/113392123
              */
-            if (lock.tryLock()) {
-                try {
-                    // 处理重复通知
-                    // 无论接口被调用多少次 以下业务只执行一次
-                    // 接口调用的幂等性
-                    int orderStatus = order.getStatus();
-                    if (orderStatus != OrderStatusEnum.ARRIVED_USER_UNPAID.getValue()) {
-                        log.info("非到达订单，订单状态将不会被更新，订单号:{}", outTradeNo);
-                        // if外将重新发送success
-                    }
+            try {
+                if (lock.tryLock(30L, TimeUnit.SECONDS)) {
+                    try {
+                        // 处理重复通知
+                        // 无论接口被调用多少次 以下业务只执行一次
+                        // 接口调用的幂等性
+                        int orderStatus = order.getStatus();
+                        if (orderStatus != OrderStatusEnum.ARRIVED_USER_UNPAID.getValue()) {
+                            log.info("非到达订单，订单状态将不会被更新，订单号:{}", outTradeNo);
+                            // if外将重新发送success
+                        }
 
-                    // 处理自身业务
-                    log.info("处理订单");
-                    // 修改订单状态 订单正常结束
-                    order.setStatus(OrderStatusEnum.ORDER_NORMAL_CLOSED.getValue());
-                    // 从unfinished order表中删除该条订单对应的记录
-                    unfinishedOrderMapper.delete(
-                            new LambdaQueryWrapper<UnfinishedOrder>()
-                                    .eq(UnfinishedOrder::getOrderId, order.getId())
-                    );
-                    // 记录支付日志
-                    log.info("订单号:{} 回调已收到，参数正常，状态已更新", outTradeNo);
-                    orderMapper.updateOrderStatus(order);
-                } finally {
-                    lock.unlock();
+                        // 处理自身业务
+                        log.info("处理订单");
+                        // 修改订单状态 订单正常结束
+                        order.setStatus(OrderStatusEnum.ORDER_NORMAL_CLOSED.getValue());
+                        // 从unfinished order表中删除该条订单对应的记录
+                        unfinishedOrderMapper.delete(
+                                new LambdaQueryWrapper<UnfinishedOrder>()
+                                        .eq(UnfinishedOrder::getOrderId, order.getId())
+                        );
+                        // 记录支付日志
+                        log.info("订单号:{} 回调已收到，参数正常，状态已更新", outTradeNo);
+                        orderMapper.updateOrderStatus(order);
+                    } finally {
+                        lock.unlock();
+                    }
                 }
+            } catch (InterruptedException e) {
+                log.error("支付宝回调加锁失败，订单号:{}", outTradeNo);
+                return result;
+            } finally {
+                lock.unlock();
             }
             result = "success";
             // 另起一个线程向司机转账
@@ -321,66 +330,78 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
      */
     @Override
     public boolean transfer(Order order){
-        AlipayFundTransUniTransferRequest request = new AlipayFundTransUniTransferRequest();
-        AlipayFundTransUniTransferModel model = new AlipayFundTransUniTransferModel();
-        // 转账订单号为order加司机id
-        Carpooling carpooling =
-                carpoolingServiceClient.getCarpoolingById(order.getCarpoolingId());
-        User driverUser = userServiceClient.getUserById(carpooling.getDriverId());
-        Driver driver = userServiceClient.getDriverByAccountUsername(
-                driverUser.getUsername()
-        );
-        String outBizNo = order.getId() + String.valueOf(driver.getId());
-        model.setOutBizNo(outBizNo);
-        // 转账金额 注意bigDecimal不支持基础运算符 保留两位小数
-        String price = new BigDecimal(carpooling.getPrice()).multiply(
-                new BigDecimal(1).subtract(COMMISSION_RATE)
-        ).setScale(2, RoundingMode.HALF_UP).toString();
-
-        // 乘以100 - 抽成比例之后保留两位小数
-        model.setTransAmount(price);
-        model.setBizScene("DIRECT_TRANSFER");
-        model.setProductCode("TRANS_ACCOUNT_NO_PWD");
-        model.setOrderTitle("西工大拼车平台订单"+ order.getId() +"收入");
-        model.setRemark("订单金额:" + carpooling.getPrice() + ", 缴纳平台费用后现转账:" + price + "元");
-
-        // 构造收款方信息
-        Participant payeeInfo = new Participant();
-        payeeInfo.setIdentity(driverUser.getAlipayId());
-        payeeInfo.setIdentityType("ALIPAY_USER_ID");
-        model.setPayeeInfo(payeeInfo);
-
-        // 构造并发送请求
-        request.setBizModel(model);
         try {
-            AlipayFundTransUniTransferResponse response =
-                    alipayClient.execute(request);
-            if (response.isSuccess()){
-                log.info("向司机转账成功，订单号:{}", order.getId());
-                return true;
-            } else {
-                if(response.getStatus().equals("SYSTEM_ERROR")){
-                    // 需要发送验证请求
-                    boolean transfer = confirmTransfer(outBizNo);
-                    if (transfer){
+            if (lock.tryLock(30L, TimeUnit.SECONDS)) {
+                log.info("收到基于订单号:{}的向司机转账请求", order.getId());
+                AlipayFundTransUniTransferRequest request =
+                        new AlipayFundTransUniTransferRequest();
+                AlipayFundTransUniTransferModel model =
+                        new AlipayFundTransUniTransferModel();
+                // 转账订单号为orderId加时间戳
+                Carpooling carpooling =
+                        carpoolingServiceClient.getCarpoolingById(order.getCarpoolingId());
+                User driverUser = userServiceClient.getUserById(carpooling.getDriverId());
+                String outBizNo = String.valueOf(order.getId()) + System.currentTimeMillis();
+                model.setOutBizNo(outBizNo);
+                // 转账金额 注意bigDecimal不支持基础运算符 保留两位小数
+                String price = new BigDecimal(carpooling.getPrice()).multiply(
+                        new BigDecimal(1).subtract(COMMISSION_RATE)
+                ).setScale(2, RoundingMode.HALF_UP).toString();
+
+                // 乘以100 - 抽成比例之后保留两位小数
+                model.setTransAmount(price);
+                model.setBizScene("DIRECT_TRANSFER");
+                model.setProductCode("TRANS_ACCOUNT_NO_PWD");
+                model.setOrderTitle("西工大拼车平台订单" + order.getId() + "收入");
+                model.setRemark("订单金额:" + carpooling.getPrice() + ", 缴纳平台费用后现转账:" + price + "元");
+
+                // 构造收款方信息
+                Participant payeeInfo = new Participant();
+                payeeInfo.setIdentity(driverUser.getAlipayId());
+                payeeInfo.setIdentityType("ALIPAY_USER_ID");
+                model.setPayeeInfo(payeeInfo);
+
+                // 构造并发送请求
+                request.setBizModel(model);
+                try {
+                    AlipayFundTransUniTransferResponse response =
+                            alipayClient.certificateExecute(request);
+                    if (response.isSuccess()) {
                         log.info("向司机转账成功，订单号:{}", order.getId());
                         return true;
+                    } else {
+                        if (response.getStatus().equals("SYSTEM_ERROR")) {
+                            // 需要发送验证请求
+                            boolean transfer = confirmTransfer(outBizNo);
+                            if (transfer) {
+                                log.info("向司机转账成功，订单号:{}", order.getId());
+                                return true;
+                            }
+                        } else {
+                            log.error("向司机转账失败，订单号:{}，错误码:{}，错误信息:{}",
+                                    order.getId(), response.getCode(), response.getMsg());
+                            return false;
+                        }
                     }
-                } else {
-                    log.error("向司机转账失败，订单号:{}，错误码:{}，错误信息:{}",
-                            order.getId(), response.getCode(), response.getMsg());
+                } catch (AlipayApiException e) {
+                    log.error("向司机转账失败，订单号:{}，错误信息:{}", order.getId(), e.getMessage());
                     return false;
                 }
+                log.error("向司机转账失败，订单号:{}", order.getId());
+                return false;
             }
-        } catch (AlipayApiException e) {
-            log.error("向司机转账失败，订单号:{}，错误信息:{}", order.getId(), e.getMessage());
+        } catch (InterruptedException e) {
+            log.error("向司机转账加锁失败，订单号:{}", order.getId());
             return false;
+        } finally {
+            lock.unlock();
         }
         log.error("向司机转账失败，订单号:{}", order.getId());
         return false;
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public R updatePay(Long orderId, LoginAccount loginAccount) {
         // 查询订单 确认订单号与用户一致
         if(orderId == null || loginAccount == null) {
