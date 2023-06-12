@@ -73,9 +73,12 @@ public class SendSmsUtil {
             } else {
                 log.info("短信发送成功");
             }
-        } catch (InterruptedException | ExecutionException | JsonProcessingException e) {
+        } catch (ExecutionException | JsonProcessingException e) {
             log.error("send sms error: " + e.getMessage());
             throw new CarpoolingException(e.getMessage());
+        } catch (InterruptedException e){
+            log.error("send sms error: " + e.getMessage());
+            Thread.currentThread().interrupt();
         }
 
         // Finally, close the client

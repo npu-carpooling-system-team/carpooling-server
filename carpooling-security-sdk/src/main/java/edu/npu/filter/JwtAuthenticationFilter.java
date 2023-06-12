@@ -119,25 +119,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (loginAccount == null) {
                     CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR,
                             "服务器异常,用户转换失败,请检查缓存合法性");
+                } else {
+                    if (jwtTokenProvider.isTokenValid(authHeader, loginAccount)) {
+                        // 将用户信息放入 SecurityContextHolder
+                        UsernamePasswordAuthenticationToken authToken =
+                                new UsernamePasswordAuthenticationToken(
+                                        loginAccount,
+                                        null,
+                                        loginAccount.getAuthorities());
+                        authToken.setDetails(new WebAuthenticationDetailsSource()
+                                .buildDetails(request));
+                        /*
+                         * SecurityContextHolder本身是一个ThreadLocal，无法被微服务中的其他服务访问到
+                         * 因此我们需要所有请求都经过这样一个过滤器，将请求头中的token解析出来
+                         * 然后将用户信息放入SecurityContextHolder
+                         */
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                        request.setAttribute("Authorization", "Bearer " + authHeader);
+                        filterChain.doFilter(request, response);
+                    }
                 }
-                if (jwtTokenProvider.isTokenValid(authHeader, loginAccount)) {
-                    // 将用户信息放入 SecurityContextHolder
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    loginAccount,
-                                    null,
-                                    loginAccount.getAuthorities());
-                    authToken.setDetails(new WebAuthenticationDetailsSource()
-                            .buildDetails(request));
-                    /*
-                     * SecurityContextHolder本身是一个ThreadLocal，无法被微服务中的其他服务访问到
-                     * 因此我们需要所有请求都经过这样一个过滤器，将请求头中的token解析出来
-                     * 然后将用户信息放入SecurityContextHolder
-                     */
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                    request.setAttribute("Authorization", "Bearer " + authHeader);
-                    filterChain.doFilter(request, response);
-                }
+
             }
         } else {
             constructExpireResp(response,

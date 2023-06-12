@@ -122,6 +122,9 @@ public class FailCachedCarpoolingServiceImpl extends ServiceImpl<FailCachedCarpo
                         "sync success");
             }
         } catch (InterruptedException e) {
+            log.error(SYNC_FAILED_CACHED_MSG +
+                    "sync fail, countDownLatch.await interrupted");
+            Thread.currentThread().interrupt();
             throw new CarpoolingException(e.getMessage());
         }
     }
