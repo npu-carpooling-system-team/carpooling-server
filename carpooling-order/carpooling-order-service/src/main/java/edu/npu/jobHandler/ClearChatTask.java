@@ -21,11 +21,11 @@ public class ClearChatTask {
     //任务调度入口
     @XxlJob("ClearChatJobHandler")
     public void clearChatJobHandler() {
-        log.debug("执行清理聊天记录的分片广播定时任务");
+        log.info("XXL>>>>>执行清理聊天记录的分片广播定时任务");
         // 分片参数
         int shardIndex = XxlJobHelper.getShardIndex();
         int shardTotal = XxlJobHelper.getShardTotal();
-        log.debug("shardIndex="+shardIndex+",shardTotal="+shardTotal);
+        log.info("shardIndex="+shardIndex+",shardTotal="+shardTotal);
         // 通过chatService删除发送一周以上且已读的聊天记录
         boolean deleteSuccess = chatService.deleteChatRecord(shardIndex, shardTotal, 100);
         if (!deleteSuccess){

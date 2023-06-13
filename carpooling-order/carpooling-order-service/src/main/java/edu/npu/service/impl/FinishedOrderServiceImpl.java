@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import edu.npu.common.OrderStatusEnum;
 import edu.npu.common.ResponseCodeEnum;
-import edu.npu.dto.RateDto;
 import edu.npu.entity.Carpooling;
 import edu.npu.entity.Driver;
 import edu.npu.entity.Order;
@@ -16,6 +15,7 @@ import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,7 +36,13 @@ public class FinishedOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
     private UserServiceClient userServiceClient;
 
     @Override
-    public R rateDriver(Long orderId, RateDto rateDto) {
+    @Transactional(rollbackFor = Exception.class)
+    public R rateDriver(Long orderId, Integer score) {
+        if (orderId == null) {
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED, "参数错误,订单ID不允许为空");
+        } else if (score == null) {
+            return R.error(ResponseCodeEnum.PRE_CHECK_FAILED, "参数错误,评分不允许为空");
+        }
         Order order = getById(orderId);
         if (!order.getStatus().equals(
                 OrderStatusEnum.ORDER_NORMAL_CLOSED.getValue()
@@ -74,12 +80,14 @@ public class FinishedOrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             }
         });
         Long newScore =
-                (long) ((totalScore.get() + rateDto.score()) / (totalRatePassenger.get() + 1.0));
+                (long) ((totalScore.get() + score) / (totalRatePassenger.get() + 1.0));
         Driver driver = userServiceClient.getDriverByAccountUsername(
                 userServiceClient.getUserById(carpooling.getDriverId()).getUsername()
         );
         driver.setAvgScore(newScore);
-        return userServiceClient.updateDriver(driver) ? R.ok() :
+        // 更新order表
+        order.setScore(score);
+        return userServiceClient.updateDriver(driver) && updateById(order) ? R.ok() :
                 R.error(ResponseCodeEnum.SERVER_ERROR,"更新司机评分失败");
     }
 }

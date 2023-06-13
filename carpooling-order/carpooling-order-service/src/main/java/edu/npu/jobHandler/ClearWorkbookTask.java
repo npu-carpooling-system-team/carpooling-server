@@ -30,6 +30,7 @@ public class ClearWorkbookTask {
 
     @XxlJob("ClearWorkbookJobHandler")
     public void clearWorkbookJobHandler() {
+        log.info("XXL>>>>>清理Excel工作簿的请求");
         List<String> fileNames = new ArrayList<>();
         String yesterday = new SimpleDateFormat("yyyy-MM-dd")
                 .format(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
@@ -44,6 +45,7 @@ public class ClearWorkbookTask {
             Objects.requireNonNull(
                 stringRedisTemplate.opsForList()
                     .range(UPLOAD_FILE_KEY_PREFIX + theDayBeforeYesterday, 0, -1)));
+        log.info("需要删除的文件名:" + fileNames);
         // 删除OSS中的文件
         fileNames.forEach(fileName -> ossUtil.deleteFile(fileName));
     }

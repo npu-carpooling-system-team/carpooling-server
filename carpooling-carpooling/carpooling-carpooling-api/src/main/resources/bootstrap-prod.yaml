@@ -34,4 +34,5 @@ spring:
 xxl:
   job:
     executor:
+      appname: carpooling-carpooling-service
       port: 63045

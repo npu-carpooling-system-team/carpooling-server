@@ -20,11 +20,11 @@ public class CarpoolingCacheJobHandler {
     //任务调度入口
     @XxlJob("CarpoolingCacheHandler")
     public void carpoolingCacheHandler() {
-        log.debug("执行校验MySQL与ES和Redis之间的同步状态的分片广播定时任务");
+        log.info("XXL>>>>>执行校验MySQL与ES和Redis之间的同步状态的分片广播定时任务");
         // 分片参数
         int shardIndex = 0;
         int shardTotal = 1;
-        log.debug("shardIndex="+shardIndex+",shardTotal="+shardTotal);
+        log.info("shardIndex="+shardIndex+",shardTotal="+shardTotal);
         // 将fail_cached_carpooling表中的数据同步到ES和Redis中
         failCachedCarpoolingService
                 .syncFailCachedCarpooling(shardIndex, shardTotal, 100);

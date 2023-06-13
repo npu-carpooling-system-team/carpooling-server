@@ -92,7 +92,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
 
     @Override
     public R startPay(Long orderId, LoginAccount loginAccount) {
-        log.debug("收到来自用户:{}对订单:{}的缴费请求,开始处理", loginAccount.getId(), orderId);
+        log.info("收到来自用户:{}对订单:{}的缴费请求,开始处理", loginAccount.getId(), orderId);
 
         // 调用支付宝接口 可能alt+enter没有候选项，需要自己写import
         AlipayTradeWapPayRequest request = new AlipayTradeWapPayRequest();

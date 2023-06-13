@@ -21,11 +21,11 @@ public class ClearUnfinishedOrderTask {
     //任务调度入口
     @XxlJob("ClearUnfinishedOrderHandler")
     public void clearUnfinishedOrderHandler() {
-        log.debug("执行清理聊天记录的分片广播定时任务");
+        log.info("XXL>>>>>执行清理聊天记录的分片广播定时任务");
         // 分片参数
         int shardIndex = XxlJobHelper.getShardIndex();
         int shardTotal = XxlJobHelper.getShardTotal();
-        log.debug("shardIndex="+shardIndex+",shardTotal="+shardTotal);
+        log.info("shardIndex="+shardIndex+",shardTotal="+shardTotal);
         // 通过chatService删除发送两天以上且已读的聊天记录
         unfinishedOrderService
                 .closeOrder(shardIndex, shardTotal, 100);
