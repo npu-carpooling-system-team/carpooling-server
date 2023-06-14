@@ -51,8 +51,8 @@
         <mysql-connector-j.version>8.0.32</mysql-connector-j.version>
         <mybatis-plus-boot-starter.version>3.5.3.1</mybatis-plus-boot-starter.version>
         <hutool.version>5.8.16</hutool.version>
-        <xxl-job-core.version>2.3.1</xxl-job-core.version>
-        <elasticsearch.version>7.12.1</elasticsearch.version>
+        <xxl-job-core.version>2.4.0</xxl-job-core.version>
+        <elasticsearch.version>8.8.1</elasticsearch.version>
         <poi.version>5.2.3</poi.version>
         <aliyun-sms.version>2.0.22</aliyun-sms.version>
         <caffeine.version>3.1.6</caffeine.version>
@@ -118,13 +118,8 @@
                 <version>${hutool.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.elasticsearch.client</groupId>
-                <artifactId>elasticsearch-rest-high-level-client</artifactId>
-                <version>${elasticsearch.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.elasticsearch</groupId>
-                <artifactId>elasticsearch</artifactId>
+                <groupId>co.elastic.clients</groupId>
+                <artifactId>elasticsearch-java</artifactId>
                 <version>${elasticsearch.version}</version>
             </dependency>
             <!--分布式任务调度-->

@@ -1,8 +1,16 @@
 package edu.npu.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.FieldSort;
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.query_dsl.*;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.json.JsonData;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.npu.common.ResponseCodeEnum;
 import edu.npu.common.UnCachedOperationEnum;
 import edu.npu.doc.CarpoolingDoc;
@@ -24,16 +32,6 @@ import edu.npu.vo.PageResultVo;
 import edu.npu.vo.R;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -42,7 +40,6 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -65,9 +62,6 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         implements DriverCarpoolingService {
 
     @Resource
-    private ObjectMapper objectMapper;
-
-    @Resource
     private DriverServiceClient driverServiceClient;
 
     @Resource
@@ -77,7 +71,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     private EsService esService;
 
     @Resource
-    private RestHighLevelClient restHighLevelClient;
+    private ElasticsearchClient elasticsearchClient;
 
     @Resource
     private OrderServiceClient orderServiceClient;
@@ -331,16 +325,13 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
         );
         try {
             // 1.准备Request
-            SearchRequest request = new SearchRequest(CARPOOLING_INDEX);
             // 2.准备请求参数
             // 2.1.query
-            buildBasicQuery(driver.getDriverId(), pageQueryDto, request);
-            // 2.2.分页
-            int page = pageQueryDto.getPageNum();
-            int size = pageQueryDto.getPageSize();
-            request.source().from((page - 1) * size).size(size);
+            SearchRequest request = buildBasicQuery(
+                    driver.getDriverId(), pageQueryDto);
             // 3.发送请求
-            SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT);
+            SearchResponse<CarpoolingDoc> response =
+                    elasticsearchClient.search(request, CarpoolingDoc.class);
             // 4.解析响应
             return resolveRestResponse(response);
         } catch (IOException e) {
@@ -350,7 +341,7 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     }
 
     @Override
-    public R resolveRestResponse(SearchResponse response) {
+    public R resolveRestResponse(SearchResponse<CarpoolingDoc> response) {
         PageResultVo pageResult = handlePageResponse(response);
         R r = new R();
         r.put("code", ResponseCodeEnum.SUCCESS.getValue());
@@ -360,68 +351,113 @@ public class DriverCarpoolingServiceImpl extends ServiceImpl<CarpoolingMapper, C
     }
 
     @Override
-    public void buildBasicQuery(Long driverId, PageQueryDto pageQueryDto, SearchRequest searchRequest) {
-        BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(pageQueryDto);
-        // 3. DriverId一致
-        boolQueryBuilder.must(QueryBuilders.termQuery("driverId", driverId));
+    public SearchRequest buildBasicQuery(Long driverId, PageQueryDto pageQueryDto) {
+        Query idQuery = new TermQuery.Builder()
+                .field("driverId").value(driverId).build()._toQuery();
+        Query boolQuery = formBoolQuery(pageQueryDto);
         // 拼装 排序时事件从近到远
-        searchRequest.source().query(boolQueryBuilder).sort(
-                SortBuilders.fieldSort(DEPARTURE_TIME).order(SortOrder.ASC)
-        );
+        Query query = new BoolQuery.Builder()
+                .must(idQuery, boolQuery).build()._toQuery();
+        // 2.2.分页
+        int page = pageQueryDto.getPageNum();
+        int size = pageQueryDto.getPageSize();
+        return new SearchRequest.Builder()
+                .query(query)
+                .from((page - 1) * size)
+                .size(size)
+                .sort(
+                // 根据出发时间排序 记住我们在用elasticsearchClient不是highlevl的那个
+                    new SortOptions.Builder().field(
+                            new FieldSort.Builder()
+                                    .field(DEPARTURE_TIME)
+                                    .order(SortOrder.Asc)
+                                    .build()
+                ).build()
+        ).build();
     }
 
-    private PageResultVo handlePageResponse(SearchResponse response) {
-        SearchHits searchHits = response.getHits();
+    private PageResultVo handlePageResponse(SearchResponse<CarpoolingDoc> response) {
+        // 4.1 获取数据
+        List<Hit<CarpoolingDoc>> hits = response.hits().hits();
         // 4.1.总条数
-        long total = searchHits.getTotalHits().value;
-        // 4.2.获取文档数组
-        SearchHit[] hits = searchHits.getHits();
-        // 4.3.遍历
-        List<CarpoolingDoc> carpoolingDocs = new ArrayList<>(hits.length);
-        for (SearchHit hit : hits) {
-            // 4.4.获取source
-            String json = hit.getSourceAsString();
-            // 4.5.反序列化
-            CarpoolingDoc carpoolingDoc
-                    = objectMapper.convertValue(json, CarpoolingDoc.class);
-            // 4.9.放入集合
-            carpoolingDocs.add(carpoolingDoc);
+        long total = 0;
+        if (response.hits().total() != null) {
+            total = response.hits().total().value();
         }
+        List<CarpoolingDoc> carpoolingDocs = hits.stream().map(Hit::source).toList();
         return new PageResultVo(total, carpoolingDocs);
     }
 
     @Override
-    public void buildBasicQuery(PageQueryDto pageQueryDto, SearchRequest searchRequest) {
-        BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(pageQueryDto);
+    public SearchRequest buildBasicQuery(PageQueryDto pageQueryDto) {
+        Query query = formBoolQuery(pageQueryDto);
+        // 2.2.分页
+        int page = pageQueryDto.getPageNum();
+        int size = pageQueryDto.getPageSize();
         // 拼装
-        searchRequest.source().query(boolQueryBuilder).sort(
-                SortBuilders.fieldSort(DEPARTURE_TIME).order(SortOrder.ASC)
-        );
+        return new SearchRequest.Builder()
+                .index(CARPOOLING_INDEX)
+                .query(query)
+                .from((page - 1) * size)
+                .size(size)
+                .sort(
+                // 根据出发时间排序 记住我们在用elasticsearchClient不是highLevel的那个
+                new SortOptions.Builder().field(
+                        new FieldSort.Builder()
+                                .field(DEPARTURE_TIME).order(SortOrder.Asc).build()
+                ).build()
+        ).build();
     }
 
-    private static BoolQueryBuilder getBoolQueryBuilder(PageQueryDto pageQueryDto) {
-        BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
+    private static Query formBoolQuery(PageQueryDto pageQueryDto) {
+        Query keywordQuery;
         // 1.关键字
         String keyword = pageQueryDto.getQuery();
         if (StringUtils.hasText(keyword)) {
-            boolQueryBuilder.must(QueryBuilders.matchQuery("all", keyword));
+            keywordQuery = new MatchQuery.Builder()
+                    .field("all").query(keyword)
+                    .build()._toQuery();
         } else {
-            boolQueryBuilder.must(QueryBuilders.matchAllQuery());
+            keywordQuery = new MatchAllQuery.Builder()
+                    .build()._toQuery();
         }
         // 2.时间
+        Query departureTimeQuery = null;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Date departureTime = pageQueryDto.getDepartureTime();
         if (departureTime != null) {
             String departureTimeStr = sdf.format(departureTime);
-            boolQueryBuilder.must(QueryBuilders.rangeQuery(DEPARTURE_TIME)
-                    .gte(departureTimeStr));
+            departureTimeQuery = new RangeQuery.Builder()
+                    .field(DEPARTURE_TIME)
+                    .gte(JsonData.fromJson(departureTimeStr))
+                    .build()._toQuery();
         }
+        Query arriveTimeQuery = null;
         Date arriveTime = pageQueryDto.getArriveTime();
         if (arriveTime != null) {
             String arriveTimeStr = sdf.format(arriveTime);
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("arriveTime")
-                    .lte(arriveTimeStr));
+            arriveTimeQuery = new RangeQuery.Builder()
+                    .field("arriveTime")
+                    .lte(JsonData.fromJson(arriveTimeStr))
+                    .build()._toQuery();
         }
-        return boolQueryBuilder;
+        // 3.拼装
+        if (departureTimeQuery != null && arriveTimeQuery != null) {
+            return new BoolQuery.Builder()
+                    .must(keywordQuery, departureTimeQuery, arriveTimeQuery)
+                    .build()._toQuery();
+        } else if (departureTimeQuery != null) {
+            return new BoolQuery.Builder()
+                    .must(keywordQuery, departureTimeQuery)
+                    .build()._toQuery();
+        } else if (arriveTimeQuery != null) {
+            return new BoolQuery.Builder()
+                    .must(keywordQuery, arriveTimeQuery)
+                    .build()._toQuery();
+        } else {
+            return new BoolQuery.Builder()
+                    .must(keywordQuery)
+                    .build()._toQuery();
+        }
     }
 }

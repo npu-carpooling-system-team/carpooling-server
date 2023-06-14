@@ -1,14 +1,15 @@
 package edu.npu.service;
 
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import com.baomidou.mybatisplus.extension.service.IService;
+import edu.npu.doc.CarpoolingDoc;
 import edu.npu.dto.AddCarpoolingDto;
 import edu.npu.dto.EditCarpoolingDto;
 import edu.npu.dto.PageQueryDto;
 import edu.npu.entity.Carpooling;
 import edu.npu.entity.LoginAccount;
 import edu.npu.vo.R;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -31,9 +32,9 @@ public interface DriverCarpoolingService extends IService<Carpooling> {
 
     R getCarpooling(PageQueryDto pageQueryDto, LoginAccount loginAccount);
 
-    R resolveRestResponse(SearchResponse response);
+    R resolveRestResponse(SearchResponse<CarpoolingDoc> response);
 
-    void buildBasicQuery(Long driverId, PageQueryDto pageQueryDto, SearchRequest searchRequest);
+    SearchRequest buildBasicQuery(Long driverId, PageQueryDto pageQueryDto);
 
-    void buildBasicQuery(PageQueryDto pageQueryDto, SearchRequest searchRequest);
+    SearchRequest buildBasicQuery(PageQueryDto pageQueryDto);
 }
