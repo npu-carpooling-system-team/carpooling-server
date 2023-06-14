@@ -21,7 +21,7 @@ public class ClearUnfinishedOrderTask {
     //任务调度入口
     @XxlJob("ClearUnfinishedOrderHandler")
     public void clearUnfinishedOrderHandler() {
-        log.info("XXL>>>>>执行清理聊天记录的分片广播定时任务");
+        log.info("XXL>>>>>执行清理关闭订单的分片广播定时任务");
         // 分片参数
         int shardIndex = XxlJobHelper.getShardIndex();
         int shardTotal = XxlJobHelper.getShardTotal();

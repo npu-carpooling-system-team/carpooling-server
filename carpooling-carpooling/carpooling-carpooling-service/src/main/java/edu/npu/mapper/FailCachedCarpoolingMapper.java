@@ -3,9 +3,6 @@ package edu.npu.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import edu.npu.entity.FailCachedCarpooling;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
-
-import java.util.List;
 
 /**
 * @author wangminan
@@ -15,9 +12,6 @@ import java.util.List;
 */
 @Mapper
 public interface FailCachedCarpoolingMapper extends BaseMapper<FailCachedCarpooling> {
-
-    @Select("SELECT * FROM fail_cached_carpooling WHERE id % #{shardTotal} = #{shardIndex} LIMIT #{count}")
-    List<FailCachedCarpooling> selectListByShardIndex(int shardIndex, int shardTotal, int count);
 }
 
 

@@ -1,5 +1,6 @@
 package edu.npu.jobHandler;
 
+import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import edu.npu.service.FailCachedCarpoolingService;
 import jakarta.annotation.Resource;
@@ -22,9 +23,11 @@ public class CarpoolingCacheJobHandler {
     public void carpoolingCacheHandler() {
         log.info("XXL>>>>>执行校验MySQL与ES和Redis之间的同步状态的分片广播定时任务");
         // 分片参数
-        int shardIndex = 0;
-        int shardTotal = 1;
-        log.info("shardIndex="+shardIndex+",shardTotal="+shardTotal);
+        // 分片序号 从0开始// 分片序号 从0开始
+        int shardIndex = XxlJobHelper.getShardIndex();
+        // 分片总数
+        int shardTotal = XxlJobHelper.getShardTotal();
+        log.info("shardIndex={},shardTotal={}", shardIndex, shardTotal);
         // 将fail_cached_carpooling表中的数据同步到ES和Redis中
         failCachedCarpoolingService
                 .syncFailCachedCarpooling(shardIndex, shardTotal, 100);

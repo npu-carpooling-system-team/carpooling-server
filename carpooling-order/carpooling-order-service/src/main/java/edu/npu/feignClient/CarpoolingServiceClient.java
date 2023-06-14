@@ -4,7 +4,10 @@ import edu.npu.entity.Carpooling;
 import edu.npu.feignClient.fallback.CarpoolingServiceClientFallbackFactory;
 import edu.npu.vo.R;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 

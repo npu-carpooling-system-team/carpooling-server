@@ -5,6 +5,7 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +23,6 @@ import edu.npu.service.UnfinishedOrderService;
 import edu.npu.util.SendMailUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,10 +42,6 @@ import static edu.npu.common.AlipayRequestConstants.OUT_TRADE_NUMBER;
 @Slf4j
 public class UnfinishedOrderServiceImpl extends ServiceImpl<UnfinishedOrderMapper, UnfinishedOrder>
     implements UnfinishedOrderService{
-
-    @Resource
-    @Lazy
-    private UnfinishedOrderMapper unfinishedOrderMapper;
 
     @Resource
     private OrderService orderService;
@@ -71,10 +67,15 @@ public class UnfinishedOrderServiceImpl extends ServiceImpl<UnfinishedOrderMappe
 
     @Override
     public void closeOrder(int shardIndex, int shardTotal, int count) {
+        log.info("XXL>>>>>开始执行清理关闭订单的分片广播定时任务,当前分片:{}", shardIndex);
         // 根据给出的分片索引和分片总数,计算出需要删除的聊天记录的id范围
         // 例如:分片索引为0,分片总数为2,则需要删除id为1,3,5,7,9...的聊天记录
         List<UnfinishedOrder> unfinishedOrders =
-                unfinishedOrderMapper.selectListByShardIndex(shardIndex, shardTotal, count);
+                getListByShardIndex(shardIndex, shardTotal, count);
+        if (unfinishedOrders.isEmpty()) {
+            log.info("XXL>>>>>当前分片没有需要处理的数据,分片索引:{}", shardIndex);
+            return;
+        }
         // 查询对应的Order的update_time,如果超过1天,则发送通知要求支付
         // 如果超过2天,则关闭订单,同时拉黑用户
         List<Order> orderList =
@@ -86,7 +87,8 @@ public class UnfinishedOrderServiceImpl extends ServiceImpl<UnfinishedOrderMappe
                                         ).toArray())
                 );
         int size = orderList.size();
-        log.info("取出:{}条数据,开始执行同步操作",size);
+
+        log.info("取出:{}条数据,开始执行查单操作",size);
 
         //创建线程池
         ExecutorService threadPool = Executors.newFixedThreadPool(size);
@@ -139,13 +141,17 @@ public class UnfinishedOrderServiceImpl extends ServiceImpl<UnfinishedOrderMappe
                     sendMailUtil.sendMail(
                             driver.getEmail(),
                             "西工大拼车平台订单超时未收款到账通知",
-                            "很遗憾地通知您,您的订单" + order.getId() + "超时未收款到账,该乘客已被平台永久封禁。"
+                            "很遗憾地通知您,您的订单"
+                                    + order.getId()
+                                    + "超时未收款到账,该乘客已被平台永久封禁。"
                     );
                     // 给乘客发邮件
                     sendMailUtil.sendMail(
                             passenger.getEmail(),
                             "西工大拼车平台订单超时未支付通知",
-                            "很遗憾地通知您,您的订单" + order.getId() + "超时未支付,您已被平台永久封禁。"
+                            "很遗憾地通知您,您的订单"
+                                    + order.getId()
+                                    + "超时未支付,您已被平台永久封禁。"
                     );
                     // 将订单状态改为已关闭
                     order.setStatus(OrderStatusEnum.ORDER_FORCE_CLOSED.getValue());
@@ -156,7 +162,8 @@ public class UnfinishedOrderServiceImpl extends ServiceImpl<UnfinishedOrderMappe
                     );
                     // 永久封禁乘客
                     userServiceClient.banAccount(passenger);
-                    log.info("订单{}超时未支付,已经永久封禁乘客{}", order.getId(), passenger.getId());
+                    log.info("订单{}超时未支付,已经永久封禁乘客{}",
+                            order.getId(), passenger.getId());
                 }
             });
         }
@@ -175,8 +182,16 @@ public class UnfinishedOrderServiceImpl extends ServiceImpl<UnfinishedOrderMappe
         }
     }
 
+    private List<UnfinishedOrder> getListByShardIndex(int shardIndex, int shardTotal, int count) {
+        QueryWrapper<UnfinishedOrder> wrapper = new QueryWrapper<>();
+        wrapper.apply("id % " + shardTotal + " = " + shardIndex);
+        wrapper.last("limit " + count);
+        return this.list(wrapper);
+    }
+
     private boolean tradeQuery(Long orderId){
         // 调用支付宝查单接口
+        log.info("调用支付宝查单接口,订单号:{}", orderId);
         AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
         ObjectNode bizContent = objectMapper.createObjectNode();
         bizContent.put(OUT_TRADE_NUMBER.getType(), String.valueOf(orderId));
@@ -192,6 +207,7 @@ public class UnfinishedOrderServiceImpl extends ServiceImpl<UnfinishedOrderMappe
             try {
                 jsonNode = objectMapper.readTree(response.getBody());
             } catch (Exception e) {
+                log.error("解析支付宝查单接口返回的json失败");
                 throw new CarpoolingException("解析支付宝查单接口返回的json失败");
             }
             JsonNode tradeStatus = jsonNode

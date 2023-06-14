@@ -1,5 +1,6 @@
 package edu.npu.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import edu.npu.common.UnCachedOperationEnum;
 import edu.npu.entity.Carpooling;
@@ -57,9 +58,15 @@ public class FailCachedCarpoolingServiceImpl extends ServiceImpl<FailCachedCarpo
 
     @Override
     public void syncFailCachedCarpooling(int shardIndex, int shardTotal, int i) {
+        log.info("XXL>>>>>开始同步行程数据");
         List<FailCachedCarpooling> failCachedCarpoolingList =
-                failCachedCarpoolingMapper.selectListByShardIndex(shardIndex, shardTotal, i);
+                getListByShardIndex(shardIndex, shardTotal, i);
+        if (failCachedCarpoolingList.isEmpty()){
+            log.info("没有需要同步的数据");
+            return;
+        }
         int size = failCachedCarpoolingList.size();
+
         log.info("取出:{}条数据,开始执行同步操作",size);
 
         //创建线程池
@@ -127,6 +134,13 @@ public class FailCachedCarpoolingServiceImpl extends ServiceImpl<FailCachedCarpo
             Thread.currentThread().interrupt();
             throw new CarpoolingException(e.getMessage());
         }
+    }
+
+    private List<FailCachedCarpooling> getListByShardIndex(int shardIndex, int shardTotal, int count) {
+        QueryWrapper<FailCachedCarpooling> wrapper = new QueryWrapper<>();
+        wrapper.apply("id % " + shardTotal + " = " + shardIndex);
+        wrapper.last("limit " + count);
+        return this.list(wrapper);
     }
 
     @Override
