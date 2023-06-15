@@ -47,6 +47,11 @@ public class ClearWorkbookTask {
                     .range(UPLOAD_FILE_KEY_PREFIX + theDayBeforeYesterday, 0, -1)));
         log.info("需要删除的文件名:" + fileNames);
         // 删除OSS中的文件
-        fileNames.forEach(fileName -> ossUtil.deleteFile(fileName));
+        fileNames.forEach(fileName -> {
+            boolean deleted = ossUtil.deleteFile(fileName);
+            if (!deleted) {
+                log.error("OSS删除文件:{}失败", fileName);
+            }
+        });
     }
 }

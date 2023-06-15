@@ -55,6 +55,7 @@ import static edu.npu.common.AlipayRequestConstants.OUT_TRADE_NUMBER;
 public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         implements OrderService {
 
+    public static final String TRANSFER_FAILED_LOG = "向司机转账失败，订单号:{}";
     @Resource
     private AlipayClient alipayClient;
 
@@ -122,13 +123,17 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
             log.error("创建支付交易失败");
             // try-catch与Transaction注解配合使用时需要手动抛出RuntimeException，否则事务不会回滚
             e.printStackTrace();
-            CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR, "创建交易失败,未知异常");
+            throw new CarpoolingException("创建交易失败,未知异常");
+        }
+        if (response == null) {
+            log.error("未收到支付宝回调");
+            throw new CarpoolingException("创建交易失败,未收到支付宝回调");
         }
         if (response.isSuccess()) {
             log.info(CALL_SUCCESS + response.getBody());
         } else {
             log.info(CALL_FAILURE + response.getCode() + " " + response.getMsg());
-            CarpoolingException.cast(CarpoolingError.UNKNOWN_ERROR, "创建支付交易失败,对方接口异常");
+            throw new CarpoolingException("创建支付交易失败,支付宝回调报异常");
         }
         /*
             回跳地址示例
@@ -301,6 +306,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
                 }
             } catch (InterruptedException e) {
                 log.error("支付宝回调加锁失败，订单号:{}", outTradeNo);
+                Thread.currentThread().interrupt();
                 return result;
             } finally {
                 lock.unlock();
@@ -311,7 +317,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
                 () -> {
                     boolean transfer = transfer(order);
                     if (!transfer){
-                        log.error("向司机转账失败，订单号:{}", order.getId());
+                        log.error(TRANSFER_FAILED_LOG, order.getId());
                     }
                 }
             );
@@ -385,16 +391,17 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
                     log.error("向司机转账失败，订单号:{}，错误信息:{}", order.getId(), e.getMessage());
                     return false;
                 }
-                log.error("向司机转账失败，订单号:{}", order.getId());
+                log.error(TRANSFER_FAILED_LOG, order.getId());
                 return false;
             }
         } catch (InterruptedException e) {
             log.error("向司机转账加锁失败，订单号:{}", order.getId());
+            Thread.currentThread().interrupt();
             return false;
         } finally {
             lock.unlock();
         }
-        log.error("向司机转账失败，订单号:{}", order.getId());
+        log.error(TRANSFER_FAILED_LOG, order.getId());
         return false;
     }
 

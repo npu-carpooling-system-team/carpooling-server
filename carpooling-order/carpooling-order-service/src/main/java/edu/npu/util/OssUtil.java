@@ -60,6 +60,7 @@ public class OssUtil {
      * @return 是否删除成功
      */
     public boolean deleteFile(String fileName){
+        log.info("收到调度,正在删除文件:{}", fileName);
         try{
             oss.deleteObject(bucketName,baseDir+fileName);
             return true;

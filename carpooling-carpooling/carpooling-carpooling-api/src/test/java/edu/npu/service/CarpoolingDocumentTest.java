@@ -13,7 +13,7 @@ import java.util.List;
  * @description : [一句话描述该类的功能]
  */
 @SpringBootTest
-public class CarpoolingDocumentTest {
+class CarpoolingDocumentTest {
     @Resource
     private EsService esService;
 
