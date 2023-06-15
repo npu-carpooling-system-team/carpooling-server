@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -86,15 +87,16 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
                     userServiceClient.getDriverByAccountUsername(user.getUsername());
             // 先通过司机ID查询出所有的订单ID
             List<Carpooling> carpoolingList =
-                    carpoolingServiceClient.getCarpoolingListByDriverId(driver.getId());
+                    carpoolingServiceClient.getCarpoolingListByDriverId(driver.getDriverId());
+            List<Long> carpoolingIdList = new ArrayList<>();
+            for (Carpooling carpooling : carpoolingList) {
+                carpoolingIdList.add(carpooling.getId());
+            }
             orders = orderMapper.selectList(
                     new LambdaQueryWrapper<Order>()
                             .ge(Order::getUpdateTime, begin)
                             .le(Order::getUpdateTime, end)
-                            .in(Order::getCarpoolingId,
-                                    (Object) carpoolingList.stream()
-                                            .map(Carpooling::getId).toArray(Long[]::new))
-
+                            .in(Order::getCarpoolingId, carpoolingIdList)
             );
         }
         // 生成当天的订单到excel表格中
@@ -147,7 +149,6 @@ public class AdminGeneralServiceImpl implements AdminGeneralService {
             return StringUtils.hasText(url) ?
                     R.ok().put("result", url) : R.error(FAILED_GENERATE_ORDER_LIST_MSG);
         } catch (IOException e) {
-            e.printStackTrace();
             throw new CarpoolingException(FAILED_GENERATE_ORDER_LIST_MSG);
         }
     }

@@ -22,10 +22,10 @@
 
     <select id="selectPrizeList" resultType="edu.npu.vo.PrizeVo">
         SELECT
-            COUNT(o.id) as totalOrders,
             d.driver_id as driverId,
             d.drivers_name as driversName,
-            u.username as driverPhone
+            u.username as driverPhone,
+            COUNT(o.id) as totalOrders
         FROM
             `order` o
             join carpooling c on o.carpooling_id = c.id

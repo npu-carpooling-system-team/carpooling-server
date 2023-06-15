@@ -122,7 +122,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
         } catch (AlipayApiException e) {
             log.error("创建支付交易失败");
             // try-catch与Transaction注解配合使用时需要手动抛出RuntimeException，否则事务不会回滚
-            e.printStackTrace();
             throw new CarpoolingException("创建交易失败,未知异常");
         }
         if (response == null) {

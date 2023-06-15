@@ -50,7 +50,7 @@ public class ElasticSearchConfig {
                         new HttpHost(
                                 config.getProperty(
                                         "var.elasticsearch.host",
-                                        "8.218.84.229"),
+                                        "127.0.0.1"),
                                 Integer.parseInt(config.getProperty(
                                         "var.elasticsearch.port",
                                         "9200")))

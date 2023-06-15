@@ -82,7 +82,6 @@ public class EsService {
                     elasticsearchClient.update(updateRequest, CarpoolingDoc.class);
         } catch (IOException e) {
             log.error("修改拼车行程失败,ES出错,carpoolingDoc:{}", carpoolingDoc);
-            e.printStackTrace();
             failCachedCarpoolingService.saveCachedFileLogToDb(carpooling.getId(),
                     UnCachedOperationEnum.UPDATE);
         }
