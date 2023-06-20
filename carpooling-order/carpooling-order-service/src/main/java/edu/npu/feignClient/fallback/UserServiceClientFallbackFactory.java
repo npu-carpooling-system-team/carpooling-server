@@ -18,7 +18,7 @@ import java.util.List;
 @Component
 public class UserServiceClientFallbackFactory implements FallbackFactory<UserServiceClient> {
 
-    private static final String FAILED_CALLAPI_SERVICE_MSG = "远程调用user-api服务失败";
+    private static final String FAILED_CALLAPI_SERVICE_MSG = "远程调用user-api服务失败:{}";
 
     @Override
     public UserServiceClient create(Throwable cause) {
