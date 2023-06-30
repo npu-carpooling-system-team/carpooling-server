@@ -9,23 +9,26 @@ import org.springframework.web.util.pattern.PathPatternParser;
 
 /**
  * @author wangminan
- * 简书抄来的给gateway用的跨域配置
+ * 更新成Spring官方文档的配置
  */
 @Configuration
 public class CorsConfig {
+
     @Bean
     public CorsWebFilter corsFilter() {
+
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedMethod("*");
+
+        // Possibly...
+        // config.applyPermitDefaultValues()
         config.addAllowedOrigin("*");
         config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        config.addExposedHeader("*");
 
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource(new PathPatternParser());
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
 
         return new CorsWebFilter(source);
     }
 }
-
-

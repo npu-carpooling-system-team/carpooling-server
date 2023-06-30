@@ -11,10 +11,10 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class RedisConfig {
-    @Bean
+    /*@Bean
     public LettuceClientConfigurationBuilderCustomizer customizer() {
         return clientConfigurationBuilder -> clientConfigurationBuilder
                 // 优先读延迟最低的节点
                 .readFrom(ReadFrom.LOWEST_LATENCY);
-    }
+    }*/
 }
