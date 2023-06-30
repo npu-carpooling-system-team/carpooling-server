@@ -1,7 +1,7 @@
 spring:
   cloud:
     nacos:
-      server-addr: 60.204.153.158:8848
+      server-addr: 103.42.30.248:8848,159.223.86.247:8848,159.223.61.37:8848
       discovery:
         namespace: ${spring.profiles.active}
         group: carpooling-system
